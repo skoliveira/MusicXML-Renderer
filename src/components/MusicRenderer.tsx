@@ -1,45 +1,93 @@
+// MusicRenderer.tsx
 import React from "react";
-import { NoteData } from "../utils/parseMusicXML";
+import { ScorePartwise, Pitch } from "../type";
 
 interface Props {
-  music: NoteData[][];
+  score: ScorePartwise;
 }
 
-const pitchToY = (step: string, octave: number): number => {
+const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
+
+// Convert a musical pitch to a vertical Y position
+const pitchToY = (pitch?: Pitch): number => {
+  if (!pitch) return 0;
+
   const scale = ["C", "D", "E", "F", "G", "A", "B"];
-  const index = scale.indexOf(step);
-  return 110 - ((octave - 4) * 7 + index) * 5;
+  const pitchIndex = scale.indexOf(pitch.step);
+  const offsetFromMiddleC = (pitch.octave - 4) * 7 + pitchIndex;
+
+  return 110 - offsetFromMiddleC * 5;
 };
 
-const DURATION_SPACING_UNIT = 40; // Base unit: 1 duration = 20px spacing
+// Render five horizontal staff lines at a vertical offset
+const renderStaffLines = (yOffset: number): JSX.Element[] => {
+  return Array.from({ length: 5 }, (_, i) => {
+    const lineY = i * 10 + yOffset;
+    return (
+      <line
+        key={`staff-line-${i}`}
+        x1={0}
+        y1={lineY}
+        x2={1000}
+        y2={lineY}
+        stroke="black"
+      />
+    );
+  });
+};
 
-export const MusicRenderer: React.FC<Props> = ({ music }) => {
+export const MusicRenderer: React.FC<Props> = ({ score }) => {
   return (
-    <svg width={1000} height={200}>
-      {/* Staff lines */}
-      {[0, 10, 20, 30, 40].map((y, i) => (
-        <line key={i} x1={0} y1={y + 60} x2={1000} y2={y + 60} stroke="black" />
-      ))}
+    <svg width={1000} height={500}>
+      {score.parts.map((part, partIndex) => {
+        const partYOffset = 60 + partIndex * 110;
 
-      {/* Notes */}
-      {music.map((measure, mIdx) => {
-        let x = mIdx * 220 + 50; // Initial measure offset
+        return (
+          <g key={`part-${partIndex}`}>
+            {renderStaffLines(partYOffset)}
 
-        return measure.map((note, nIdx) => {
-          const y = note.isRest ? 80 : pitchToY(note.step!, note.octave!);
-          const spacing = note.duration * DURATION_SPACING_UNIT;
+            {part.measures.flatMap((measure, measureIndex) => {
+              let currentX = measureIndex * 220 + 50;
+              let spacing = 0;
 
-          const element = note.isRest ? (
-            <text key={`${mIdx}-${nIdx}`} x={x} y={y} fontSize="14px">
-              𝄽
-            </text>
-          ) : (
-            <circle key={`${mIdx}-${nIdx}`} cx={x} cy={y} r={5} fill="black" />
-          );
+              return measure.elements.map((element, elementIndex) => {
+                if (element.note) {
+                  const { note } = element;
+                  const noteY = note.rest ? 80 : pitchToY(note.pitch);
 
-          x += spacing;
-          return element;
-        });
+                  if (!note.chord) currentX += spacing;
+                  spacing = note.duration * DURATION_SPACING_UNIT;
+
+                  const key = `${
+                    note.rest ? "rest" : "note"
+                  }-${partIndex}-${measureIndex}-${elementIndex}`;
+
+                  return note.rest ? (
+                    <text key={key} x={currentX} y={noteY} fontSize="14px">
+                      𝄽
+                    </text>
+                  ) : (
+                    <ellipse
+                      key={key}
+                      cx={currentX}
+                      cy={noteY}
+                      rx={6}
+                      ry={4}
+                      fill="black"
+                      transform={`rotate(-27, ${currentX}, ${noteY})`}
+                    />
+                  );
+                }
+
+                if (element.backup) {
+                  currentX -= element.backup.duration * DURATION_SPACING_UNIT;
+                }
+
+                return null;
+              });
+            })}
+          </g>
+        );
       })}
     </svg>
   );
