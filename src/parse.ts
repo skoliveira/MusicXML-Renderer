@@ -12,6 +12,7 @@ import {
   Octave,
   Attributes,
   NoteType,
+  GroupSymbolValue,
 } from "./type";
 
 export function parse(xmlContent: string): ScorePartwise {
@@ -19,43 +20,44 @@ export function parse(xmlContent: string): ScorePartwise {
   const xml = parser.parseFromString(xmlContent, "application/xml");
 
   const score: ScorePartwise = {
-    partList: {
-      scorePart: [],
-    },
+    partList: { scorePart: [] },
     parts: [],
   };
 
-  const getText = (el: Element | null) => el?.textContent || undefined;
+  const getText = (el: Element | null): string | undefined =>
+    el?.textContent || undefined;
 
-  // Work
-  const workEl = xml.querySelector("work");
-  if (workEl) {
+  // Parse <work>
+  const workElement = xml.querySelector("work");
+  if (workElement) {
     score.work = {
-      workNumber: getText(workEl.querySelector("work-number")),
-      workTitle: getText(workEl.querySelector("work-title")),
+      workNumber: getText(workElement.querySelector("work-number")),
+      workTitle: getText(workElement.querySelector("work-title")),
     };
   }
 
-  // Identification
-  const idEl = xml.querySelector("identification");
-  if (idEl) {
+  // Parse <identification>
+  const identificationElement = xml.querySelector("identification");
+  if (identificationElement) {
     score.identification = {
-      creator: Array.from(idEl.querySelectorAll("creator")).map((creator) => ({
-        type: creator.getAttribute("type") || undefined,
-        value: creator.textContent || "",
+      creator: Array.from(
+        identificationElement.querySelectorAll("creator")
+      ).map((el) => ({
+        type: el.getAttribute("type") || undefined,
+        value: el.textContent || "",
       })),
     };
   }
 
-  // Part list
-  xml.querySelectorAll("score-part").forEach((el) => {
+  // Parse <score-part>
+  xml.querySelectorAll("score-part").forEach((partEl) => {
     score.partList.scorePart.push({
-      id: el.getAttribute("id") || "",
-      partName: getText(el.querySelector("part-name")) || "",
+      id: partEl.getAttribute("id") || "",
+      partName: getText(partEl.querySelector("part-name")) || "",
     });
   });
 
-  // Parts and measures
+  // Parse <part>
   xml.querySelectorAll("part").forEach((partEl) => {
     const part: Part = {
       id: partEl.getAttribute("id") || "",
@@ -66,98 +68,119 @@ export function parse(xmlContent: string): ScorePartwise {
       const measure: Measure = {
         number: measureEl.getAttribute("number") || "",
         elements: [],
-        attributes: [],
+        attributes: undefined,
       };
 
+      // Parse <attributes>
       const attrEl = measureEl.querySelector("attributes");
       if (attrEl) {
         const attr: Attributes = {};
 
-        const divisions = attrEl.querySelector("divisions");
-        if (divisions) attr.divisions = parseInt(divisions.textContent || "0");
+        const divisionsEl = attrEl.querySelector("divisions");
+        if (divisionsEl)
+          attr.divisions = parseInt(divisionsEl.textContent || "0");
 
-        const key = attrEl.querySelector("key");
-        if (key) {
+        const keyEl = attrEl.querySelector("key");
+        if (keyEl) {
           attr.key = [
             {
-              fifths: parseInt(key.querySelector("fifths")?.textContent || "0"),
-            },
-          ];
-        }
-
-        const time = attrEl.querySelector("time");
-        if (time) {
-          attr.time = [
-            {
-              beats: parseInt(time.querySelector("beats")?.textContent || "0"),
-              beatType: parseInt(
-                time.querySelector("beat-type")?.textContent || "0"
+              fifths: parseInt(
+                keyEl.querySelector("fifths")?.textContent || "0"
               ),
             },
           ];
         }
 
-        const clef = attrEl.querySelector("clef");
-        if (clef) {
-          attr.clefs = [
+        const timeEl = attrEl.querySelector("time");
+        if (timeEl) {
+          attr.time = [
             {
-              sign: getText(clef.querySelector("sign")) as ClefSign,
-              line: parseInt(clef.querySelector("line")?.textContent || "0"),
+              beats: parseInt(
+                timeEl.querySelector("beats")?.textContent || "0"
+              ),
+              beatType: parseInt(
+                timeEl.querySelector("beat-type")?.textContent || "0"
+              ),
             },
           ];
         }
 
-        measure.attributes?.push(attr);
+        const stavesEl = attrEl.querySelector("staves");
+        if (stavesEl)
+          attr.staves = parseInt(stavesEl.textContent || "1") as number;
+
+        const partSymbolEl = attrEl.querySelector("part-symbol");
+        if (partSymbolEl) {
+          attr.partSymbol = partSymbolEl.textContent as GroupSymbolValue;
+        }
+
+        const instrumentsEl = attrEl.querySelector("instruments");
+        if (instrumentsEl) {
+          attr.instruments = parseInt(instrumentsEl.textContent || "0");
+        }
+
+        const clefEl = attrEl.querySelector("clef");
+        if (clefEl) {
+          attr.clefs = [
+            {
+              sign: getText(clefEl.querySelector("sign")) as ClefSign,
+              line: parseInt(clefEl.querySelector("line")?.textContent || "0"),
+            },
+          ];
+        }
+
+        measure.attributes = attr;
       }
 
-      // Elements: notes & backups
-      measureEl.childNodes.forEach((node) => {
-        if (!(node instanceof Element)) return;
+      // Parse elements in <measure> (notes, backups)
+      measureEl.childNodes.forEach((child) => {
+        if (!(child instanceof Element)) return;
 
-        if (node.tagName === "note") {
-          const noteEl = node;
+        if (child.tagName === "note") {
           const note: Note = {
-            chord: !!noteEl.querySelector("chord"),
+            chord: !!child.querySelector("chord"),
             duration: parseInt(
-              noteEl.querySelector("duration")?.textContent || "0"
+              child.querySelector("duration")?.textContent || "0"
             ),
-            dots: noteEl.querySelectorAll("dot").length,
-            staff: noteEl.querySelector("staff")
-              ? parseInt(noteEl.querySelector("staff")?.textContent || "0")
+            dots: child.querySelectorAll("dot").length,
+            staff: child.querySelector("staff")
+              ? parseInt(child.querySelector("staff")?.textContent || "0")
               : undefined,
           };
 
-          const pitch = noteEl.querySelector("pitch");
-          if (pitch) {
+          const pitchEl = child.querySelector("pitch");
+          if (pitchEl) {
             note.pitch = {
-              step: getText(pitch.querySelector("step")) as Step,
+              step: getText(pitchEl.querySelector("step")) as Step,
               octave: parseInt(
-                getText(pitch.querySelector("octave")) || "0"
+                getText(pitchEl.querySelector("octave")) || "0"
               ) as Octave,
-              alter: pitch.querySelector("alter")
-                ? parseInt(getText(pitch.querySelector("alter")) || "0")
+              alter: pitchEl.querySelector("alter")
+                ? parseInt(getText(pitchEl.querySelector("alter")) || "0")
                 : undefined,
             };
           }
 
-          const rest = noteEl.querySelector("rest");
-          if (rest) {
+          const restEl = child.querySelector("rest");
+          if (restEl) {
             note.rest = {
-              measure: rest.getAttribute("measure") as Rest["measure"],
-              displayStep: getText(rest.querySelector("display-step")) as Step,
+              measure: restEl.getAttribute("measure") as Rest["measure"],
+              displayStep: getText(
+                restEl.querySelector("display-step")
+              ) as Step,
               displayOctave: parseInt(
-                getText(rest.querySelector("display-octave")) || "0"
+                getText(restEl.querySelector("display-octave")) || "0"
               ) as Octave,
             };
           }
 
-          const type = getText(noteEl.querySelector("type"));
+          const type = getText(child.querySelector("type"));
           if (type) note.type = type as NoteType;
 
-          const accidental = getText(noteEl.querySelector("accidental"));
+          const accidental = getText(child.querySelector("accidental"));
           if (accidental) note.accidental = accidental as AccidentalValue;
 
-          const lyrics = noteEl.querySelectorAll("lyric");
+          const lyrics = child.querySelectorAll("lyric");
           if (lyrics.length) {
             note.lyrics = Array.from(lyrics).map<Lyric>((lyricEl) => ({
               syllabic: getText(
@@ -170,11 +193,13 @@ export function parse(xmlContent: string): ScorePartwise {
           measure.elements.push({ note });
         }
 
-        if (node.tagName === "backup") {
-          const durationEl = node.querySelector("duration");
-          if (durationEl) {
+        if (child.tagName === "backup") {
+          const duration = child.querySelector("duration");
+          if (duration) {
             measure.elements.push({
-              backup: { duration: parseInt(durationEl.textContent || "0") },
+              backup: {
+                duration: parseInt(duration.textContent || "0"),
+              },
             });
           }
         }
