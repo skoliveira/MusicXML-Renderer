@@ -208,6 +208,18 @@ export type NumeralMode =
   | "minor"
   | "natural minor";
 
+export type Mode =
+  | "major"
+  | "minor"
+  | "dorian"
+  | "phrygian"
+  | "lydian"
+  | "mixolydian"
+  | "aeolian"
+  | "ionian"
+  | "locrian"
+  | "none";
+
 export interface Pitch {
   step: Step;
   octave: Octave;
@@ -340,7 +352,7 @@ export interface Note {
   rest?: Rest;
   duration: number;
   type?: NoteType;
-  dots: number;
+  dots?: number;
   accidental?: AccidentalValue;
   stem?: "down" | "up" | "double" | "none";
   notehead?: NoteheadValue;
@@ -404,7 +416,9 @@ export interface Backup {
 }
 
 export interface Key {
+  cancel?: number;
   fifths: number;
+  mode?: Mode;
 }
 
 export interface Time {
