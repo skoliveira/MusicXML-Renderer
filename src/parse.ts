@@ -355,35 +355,43 @@ export function parseAttributes(elem: Element): Attributes {
 
 export function parseMeasure(elem: Element): Measure {
   const number = elem.getAttribute("number") || "1";
-  const elements: { note?: Note; backup?: Backup }[] = [];
+  const elements: {
+    attributes?: Attributes;
+    harmony?: Harmony;
+    note?: Note;
+    backup?: Backup;
+  }[] = [];
 
   for (const child of Array.from(elem.children)) {
-    if (child.tagName === "note") {
-      elements.push({ note: parseNote(child) });
-    } else if (child.tagName === "backup") {
-      elements.push({
-        backup: {
-          duration: parseInt(
-            child.querySelector("duration")?.textContent || "0"
-          ),
-        },
-      });
+    switch (child.tagName) {
+      case "attributes":
+        elements.push({
+          attributes: parseAttributes(child),
+        });
+        break;
+      case "harmony":
+        elements.push({ harmony: parseHarmony(child) });
+        break;
+      case "note":
+        elements.push({ note: parseNote(child) });
+        break;
+      case "backup":
+        elements.push({
+          backup: {
+            duration: parseInt(
+              child.querySelector("duration")?.textContent || "0"
+            ),
+          },
+        });
+        break;
     }
   }
-
-  const attributes = elem.querySelector("attributes")
-    ? parseAttributes(elem.querySelector("attributes")!)
-    : undefined;
-
-  const harmony = elem.querySelector("harmony")
-    ? parseHarmony(elem.querySelector("harmony")!)
-    : undefined;
 
   const barline = elem.querySelector("barline")?.textContent as
     | BarStyle
     | undefined;
 
-  return { number, elements, attributes, harmony, barline };
+  return { number, elements, barline };
 }
 
 export function parsePartGroup(elem: Element): PartGroup {

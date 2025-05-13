@@ -438,9 +438,12 @@ export interface Attributes {
 
 export interface Measure {
   number: string;
-  elements: { note?: Note; backup?: Backup }[];
-  attributes?: Attributes;
-  harmony?: Harmony;
+  elements: {
+    attributes?: Attributes;
+    harmony?: Harmony;
+    note?: Note;
+    backup?: Backup;
+  }[];
   barline?: BarStyle;
 }
 

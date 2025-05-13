@@ -9,7 +9,7 @@ interface Props {
 
 const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
 const STAFF_SPACING = 80; // Vertical spacing between staves within a part
-const PART_SPACING = 150; // Vertical spacing between parts
+const PART_SPACING = 160; // Vertical spacing between parts
 
 // Convert a musical pitch to a vertical Y position
 const pitchToY = (pitch?: Pitch, staff = 1): number => {
@@ -64,19 +64,29 @@ const renderMeasureLine = (
 };
 
 export const MusicRenderer: React.FC<Props> = ({ score }) => {
+  const measureCount = score.parts[0].measures.length;
+
   return (
-    <svg width={1000} height={score.parts.length * PART_SPACING}>
+    <svg width={1000} height={1000}>
       {score.parts.map((part, partIndex) => {
         const partYOffset = 60 + partIndex * PART_SPACING;
         // Get number of staves from part's first measure's attributes
-        const staveCount = part.measures[0]?.attributes?.staves || 1;
+        const staveCount =
+          part.measures[0]?.elements.find((e) => e.attributes)?.attributes
+            ?.staves ?? 1;
 
         return (
           <g key={`part-${partIndex}`}>
             {renderStaffLines(partYOffset, staveCount)}
 
             {part.measures.map((measure, measureIndex) => {
-              const measureX = measureIndex * 220 + 50;
+              const beats =
+                measure.elements
+                  .find((e) => e.attributes)
+                  ?.attributes?.time?.find((t) => t.beats)?.beats ?? 4;
+
+              const measureX =
+                measureIndex * beats * DURATION_SPACING_UNIT + 50;
               let currentX = measureX;
               let spacing = 0;
 
@@ -102,7 +112,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   }-${partIndex}-${measureIndex}-${elementIndex}`;
 
                   elements.push(
-                    <Note note={note} x={currentX} y={noteY} elementKey={key} />
+                    <Note
+                      key={key}
+                      note={note}
+                      x={currentX}
+                      y={noteY}
+                      elementKey={key}
+                    />
                   );
                 }
 
