@@ -516,7 +516,7 @@ export function parseIdentification(elem: Element): Identification {
   return { creator: creators.length > 0 ? creators : undefined };
 }
 
-export function parseMusicXML(xmlString: string): ScorePartwise {
+export function parse(xmlString: string): ScorePartwise {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xmlString, "text/xml");
   const root = doc.documentElement;
