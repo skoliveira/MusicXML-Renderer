@@ -332,8 +332,8 @@ export function parseAttributes(elem: Element): Attributes {
     line: clefElem.querySelector("line")
       ? parseInt(clefElem.querySelector("line")!.textContent || "0")
       : undefined,
-    staffNumber: clefElem.querySelector("staff-number")
-      ? parseInt(clefElem.querySelector("staff-number")!.textContent || "0")
+    staffNumber: clefElem.getAttribute("number")
+      ? parseInt(clefElem.getAttribute("number") || "1")
       : undefined,
     clefOctaveChange: clefElem.querySelector("clef-octave-change")
       ? parseInt(
