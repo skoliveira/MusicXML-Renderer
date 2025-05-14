@@ -1,6 +1,7 @@
 import React from "react";
 import { Note } from "../type";
 import { NoteHead } from "./NoteHead";
+import { StemRenderer } from "./StemRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -23,5 +24,22 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
     );
   }
 
-  return <NoteHead type={note.type} x={x} y={y} elementKey={elementKey} />;
+  return (
+    <>
+      <NoteHead
+        type={note.type}
+        notehead={note.notehead}
+        x={x}
+        y={y}
+        elementKey={elementKey}
+      />
+      <StemRenderer
+        notehead={note.notehead}
+        stem={note.stem}
+        x={x}
+        y={y}
+        elementKey={elementKey}
+      />
+    </>
+  );
 };

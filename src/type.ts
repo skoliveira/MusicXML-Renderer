@@ -192,6 +192,8 @@ export type NumeralRoot = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type Octave = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
+export type Stem = "down" | "up" | "double" | "none";
+
 export type ClefSign =
   | "G"
   | "F"
@@ -354,7 +356,7 @@ export interface Note {
   type?: NoteType;
   dots?: number;
   accidental?: AccidentalValue;
-  stem?: "down" | "up" | "double" | "none";
+  stem?: Stem;
   notehead?: NoteheadValue;
   staff?: number;
   beams?: Beams[];

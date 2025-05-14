@@ -510,7 +510,6 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
                 x2={x + 5}
                 y2={y - 5}
                 stroke="black"
-                strokeWidth="2"
               />
               <line
                 mask={`url(#${elementKey})`}
@@ -519,7 +518,6 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
                 x2={x - 5}
                 y2={y - 5}
                 stroke="black"
-                strokeWidth="2"
               />
             </g>
           </g>
@@ -544,5 +542,5 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
     return renderDurationHead();
   }
 
-  return <g>{renderSpecialNotehead()}</g>;
+  return renderSpecialNotehead();
 };

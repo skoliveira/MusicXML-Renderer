@@ -35,6 +35,7 @@ import {
   Pitch,
   Rest,
   ScorePart,
+  Stem,
 } from "./type";
 
 export function parsePitch(elem: Element): Pitch {
@@ -194,12 +195,7 @@ export function parseNote(elem: Element): Note {
   const accidental = elem.querySelector("accidental")?.textContent as
     | AccidentalValue
     | undefined;
-  const stem = elem.querySelector("stem")?.textContent as
-    | "down"
-    | "up"
-    | "double"
-    | "none"
-    | undefined;
+  const stem = elem.querySelector("stem")?.textContent as Stem | undefined;
   const notehead = elem.querySelector("notehead")?.textContent as
     | NoteheadValue
     | undefined;
