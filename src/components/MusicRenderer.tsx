@@ -2,11 +2,11 @@ import React from "react";
 import { Pitch, ScorePartwise, Clef, ClefSign } from "../type";
 import { NoteRenderer } from "./NoteRenderer";
 import {
-  StaveRenderer,
+  StavesRenderer,
   renderMeasureLine,
   STAFF_SPACING,
   STAFF_LINE_SPACING,
-} from "./StaveRenderer";
+} from "./StavesRenderer";
 import { ClefRenderer } from "./ClefRenderer";
 
 interface Props {
@@ -78,7 +78,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
         return (
           <g key={`part-${partIndex}`}>
-            <StaveRenderer yOffset={partYOffset} staves={staveCount} />
+            <StavesRenderer yOffset={partYOffset} staves={staveCount} />
 
             {part.measures.map((measure, measureIndex) => {
               const beats =

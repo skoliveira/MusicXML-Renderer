@@ -3,13 +3,13 @@ import React, { JSX } from "react";
 export const STAFF_SPACING = 120; // Vertical spacing between staves within a part
 export const STAFF_LINE_SPACING = 10; // Spacing between staff lines
 
-interface StaveRendererProps {
+interface StavesRendererProps {
   yOffset: number;
   staves?: number;
   width?: number;
 }
 
-export const StaveRenderer: React.FC<StaveRendererProps> = ({
+export const StavesRenderer: React.FC<StavesRendererProps> = ({
   yOffset,
   staves = 1,
   width = 1000,
