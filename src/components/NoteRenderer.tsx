@@ -1,15 +1,20 @@
 import React from "react";
-import { Note as NoteType } from "../type";
+import { Note } from "../type";
 import { NoteHead } from "./NoteHead";
 
-interface NoteProps {
-  note: NoteType;
+interface NoteRendererProps {
+  note: Note;
   x: number;
   y: number;
   elementKey: string;
 }
 
-export const Note: React.FC<NoteProps> = ({ note, x, y, elementKey }) => {
+export const NoteRenderer: React.FC<NoteRendererProps> = ({
+  note,
+  x,
+  y,
+  elementKey,
+}) => {
   if (note.rest) {
     return (
       <text key={elementKey} x={x} y={y} fontSize="14px">

@@ -1,6 +1,6 @@
 import React from "react";
 import { Pitch, ScorePartwise, Clef, ClefSign } from "../type";
-import { Note } from "./Note";
+import { NoteRenderer } from "./NoteRenderer";
 import {
   StaveRenderer,
   renderMeasureLine,
@@ -140,7 +140,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   }-${partIndex}-${measureIndex}-${elementIndex}`;
 
                   elements.push(
-                    <Note
+                    <NoteRenderer
                       key={key}
                       note={note}
                       x={currentX}
