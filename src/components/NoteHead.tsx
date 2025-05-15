@@ -319,25 +319,8 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
         );
       case "do":
         return (
-          <g>
-            <mask id={elementKey}>
-              <rect
-                x={x - 5}
-                y={y - 10}
-                width={10}
-                height={10}
-                fill="white"
-                transform={`rotate(45,${x},${y})`}
-              />
-            </mask>
-            <rect
-              mask={`url(#${elementKey})`}
-              x={x - 3.5355339}
-              y={y - 3.5355339}
-              width={7.0710678}
-              height={7.0710678}
-              transform={`rotate(-45,${x},${y})`}
-            />
+          <g transform={`translate(${x},${y})`}>
+            <path d="M 4.2333336,3.6661742 H -4.2333331 L 3.8764648e-7,-3.6661743 Z" />
           </g>
         );
       case "fa":
@@ -345,21 +328,20 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
           <g>
             <mask id={elementKey}>
               <rect
-                x={x - 5}
-                y={y - 10}
-                width={10}
-                height={10}
+                x={x - 7.071067812}
+                y={y - 14.142135624}
+                width={14.142135624}
+                height={14.142135624}
                 fill="white"
-                transform={`rotate(45,${x},${y})`}
+                transform={`rotate(-45,${x},${y})`}
               />
             </mask>
             <rect
               mask={`url(#${elementKey})`}
-              x={x - 3.5355339}
-              y={y - 3.5355339}
-              width={7.0710678}
-              height={7.0710678}
-              transform={`rotate(-90,${x},${y})`}
+              x={x - 5}
+              y={y - 5}
+              width={10}
+              height={10}
             />
           </g>
         );
@@ -368,20 +350,20 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
           <g>
             <mask id={elementKey}>
               <rect
-                x={x - 5}
-                y={y - 10}
-                width={10}
-                height={10}
+                x={x - 7.071067812}
+                y={y - 14.142135624}
+                width={14.142135624}
+                height={14.142135624}
                 fill="white"
                 transform={`rotate(45,${x},${y})`}
               />
             </mask>
             <rect
               mask={`url(#${elementKey})`}
-              x={x - 3.5355339}
-              y={y - 3.5355339}
-              width={7.0710678}
-              height={7.0710678}
+              x={x - 5}
+              y={y - 5}
+              width={10}
+              height={10}
             />
           </g>
         );
@@ -392,27 +374,26 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
           </g>
         );
       case "la":
-        return <rect x={x - 5} y={y - 5} width={10} height={10} />;
+        return <rect x={x - 4.5} y={y - 4.5} width={9} height={9} />;
       case "left triangle":
         return (
           <g>
             <mask id={elementKey}>
               <rect
-                x={x - 5}
-                y={y - 10}
-                width={10}
-                height={10}
+                x={x - 7.071067812}
+                y={y - 14.142135624}
+                width={14.142135624}
+                height={14.142135624}
                 fill="white"
-                transform={`rotate(45,${x},${y})`}
+                transform={`rotate(135,${x},${y})`}
               />
             </mask>
             <rect
               mask={`url(#${elementKey})`}
-              x={x - 3.5355339}
-              y={y - 3.5355339}
-              width={7.0710678}
-              height={7.0710678}
-              transform={`rotate(90,${x},${y})`}
+              x={x - 5}
+              y={y - 5}
+              width={10}
+              height={10}
             />
           </g>
         );
@@ -428,6 +409,18 @@ export const NoteHead: React.FC<NoteHeadProps> = ({
         );
       case "none":
         return <g transform={`translate(${x},${y})`}></g>;
+      case "normal":
+        if (type) return renderDurationHead();
+        return (
+          <ellipse
+            cx={x}
+            cy={y}
+            rx={6}
+            ry={4}
+            transform={`rotate(-27,${x},${y})`}
+            fill="black"
+          />
+        );
       case "re":
         return (
           <g transform={`translate(${x},${y})`}>
