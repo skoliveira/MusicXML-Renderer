@@ -445,8 +445,8 @@ export interface Measure {
     harmony?: Harmony;
     note?: Note;
     backup?: Backup;
+    barline?: BarStyle;
   }[];
-  barline?: BarStyle;
 }
 
 export interface GroupNameDisplay {

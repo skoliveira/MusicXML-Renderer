@@ -356,6 +356,7 @@ export function parseMeasure(elem: Element): Measure {
     harmony?: Harmony;
     note?: Note;
     backup?: Backup;
+    barline?: BarStyle;
   }[] = [];
 
   for (const child of Array.from(elem.children)) {
@@ -380,14 +381,16 @@ export function parseMeasure(elem: Element): Measure {
           },
         });
         break;
+      case "barline":
+        elements.push({
+          barline: child.querySelector("barline")?.textContent as
+            | BarStyle
+            | undefined,
+        });
     }
   }
 
-  const barline = elem.querySelector("barline")?.textContent as
-    | BarStyle
-    | undefined;
-
-  return { number, elements, barline };
+  return { number, elements };
 }
 
 export function parsePartGroup(elem: Element): PartGroup {
