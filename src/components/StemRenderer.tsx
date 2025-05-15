@@ -162,17 +162,6 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
             stroke="black"
           />
         );
-      case "left triangle":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4}
-            y1={y + 3.5}
-            x2={x + 4}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
       case "slash":
         return (
           <line
