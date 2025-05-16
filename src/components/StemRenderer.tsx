@@ -16,7 +16,7 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
   y,
   elementKey,
 }) => {
-  const renderDurationHead = () => {
+  const durationHead = () => {
     switch (stem) {
       case "up":
         return (
@@ -66,7 +66,7 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
     }
   };
 
-  const renderSpecialNotehead = () => {
+  const specialNotehead = () => {
     switch (notehead) {
       case "arrow down":
         return (
@@ -221,8 +221,8 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
   };
 
   if (!notehead) {
-    return renderDurationHead();
+    return durationHead();
   }
 
-  return renderSpecialNotehead();
+  return specialNotehead();
 };

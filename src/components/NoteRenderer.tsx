@@ -2,6 +2,7 @@ import React from "react";
 import { Note } from "../type";
 import { NoteHead } from "./NoteHead";
 import { StemRenderer } from "./StemRenderer";
+import { RestRenderer } from "./RestRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -18,9 +19,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
 }) => {
   if (note.rest) {
     return (
-      <text key={elementKey} x={x} y={y} fontSize="14px">
-        𝄽
-      </text>
+      <RestRenderer measure={note.rest.measure} type={note.type} x={x} y={y} />
     );
   }
 
