@@ -19,7 +19,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
 }) => {
   if (note.rest) {
     return (
-      <RestRenderer measure={note.rest.measure} type={note.type} x={x} y={y} />
+      <RestRenderer type={note.type} measure={note.rest.measure} x={x} y={y} />
     );
   }
 
