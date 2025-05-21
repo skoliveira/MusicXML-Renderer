@@ -14,7 +14,6 @@ interface Props {
 }
 
 const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
-const PART_SPACING = 160; // Vertical spacing between parts
 
 // Get the vertical offset for a pitch based on the clef type
 const getClefOffset = (clefSign: ClefSign, line: number = 2): number => {
@@ -37,7 +36,12 @@ const getClefOffset = (clefSign: ClefSign, line: number = 2): number => {
 };
 
 // Convert a musical pitch to a vertical Y position
-const pitchToY = (pitch?: Pitch, staff = 1, activeClef?: Clef): number => {
+const pitchToY = (
+  pitch?: Pitch,
+  staff = 1,
+  activeClef?: Clef,
+  partYOffset = 0
+): number => {
   if (!pitch) return 0;
 
   const scale = ["C", "D", "E", "F", "G", "A", "B"];
@@ -45,7 +49,7 @@ const pitchToY = (pitch?: Pitch, staff = 1, activeClef?: Clef): number => {
   const offsetFromMiddleC = (pitch.octave - 4) * 7 + pitchIndex;
 
   // Calculate base position
-  const baseY = 110 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
+  const baseY = 50 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
 
   // Add staff offset and clef adjustment
   const staffOffset = (staff - 1) * STAFF_SPACING;
@@ -53,22 +57,55 @@ const pitchToY = (pitch?: Pitch, staff = 1, activeClef?: Clef): number => {
     ? getClefOffset(activeClef.sign, activeClef.line)
     : 0;
 
-  return baseY + staffOffset + clefOffset;
+  return baseY + staffOffset + clefOffset + partYOffset;
 };
 
 export const MusicRenderer: React.FC<Props> = ({ score }) => {
+  // Calculate total width needed for all parts
+  const maxWidth = Math.max(
+    ...score.parts.map((part) => {
+      // Find initial attributes in first measure
+      const firstMeasureAttrs = part.measures[0]?.elements.find(
+        (e) => e.attributes
+      )?.attributes;
+      const divisions = firstMeasureAttrs?.divisions ?? 1;
+      const beats = firstMeasureAttrs?.time?.find((t) => t.beats)?.beats ?? 4;
+      const measureWidth = beats * DURATION_SPACING_UNIT * divisions;
+      return measureWidth * part.measures.length;
+    })
+  );
+
+  const svgWidth = maxWidth + 55;
+
+  // Function to get part offset based on previous parts' staves
+  const getPartYOffset = (partIndex: number): number => {
+    if (partIndex === 0) return 60; // First part starts at 60px
+
+    // Get number of staves in previous part
+    const prevPartAttrs = score.parts[partIndex - 1].measures[0]?.elements.find(
+      (e) => e.attributes
+    )?.attributes;
+    const prevPartStaves = prevPartAttrs?.staves ?? 1;
+
+    // Get previous part's offset
+    const prevOffset: number = getPartYOffset(partIndex - 1);
+
+    // Return previous part offset + spacing based on its staves count
+    return prevOffset + prevPartStaves * STAFF_SPACING;
+  };
+
   return (
-    <svg width={1000} height={1000}>
+    <svg width={svgWidth} height={1000}>
       {score.parts.map((part, partIndex) => {
-        const partYOffset = 60 + partIndex * PART_SPACING;
-        // Get initial clefs and number of staves
-        const firstMeasure = part.measures[0];
-        const staveCount =
-          firstMeasure?.elements.find((e) => e.attributes)?.attributes
-            ?.staves ?? 1;
-        const initialClefs =
-          firstMeasure?.elements.find((e) => e.attributes?.clefs)?.attributes
-            ?.clefs || [];
+        const partYOffset = getPartYOffset(partIndex);
+
+        // Get part-specific attributes from first measure
+        const firstMeasureAttrs = part.measures[0]?.elements.find(
+          (e) => e.attributes
+        )?.attributes;
+        const divisions = firstMeasureAttrs?.divisions ?? 1;
+        const staves = firstMeasureAttrs?.staves ?? 1;
+        const initialClefs = firstMeasureAttrs?.clefs ?? [];
 
         // Initialize active clefs with initial clefs
         const globalActiveClefs: Record<number, Clef> = {};
@@ -78,7 +115,11 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
         return (
           <g key={`part-${partIndex}`}>
-            <StavesRenderer yOffset={partYOffset} staves={staveCount} />
+            <StavesRenderer
+              width={svgWidth}
+              yOffset={partYOffset}
+              staves={staves}
+            />
 
             {part.measures.map((measure, measureIndex) => {
               const beats =
@@ -87,14 +128,16 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   ?.attributes?.time?.find((t) => t.beats)?.beats ?? 4;
 
               const measureX =
-                measureIndex * beats * DURATION_SPACING_UNIT + 50;
+                measureIndex * beats * DURATION_SPACING_UNIT * divisions + 50;
               let currentX = measureX;
               let spacing = 0;
 
-              // Render measure line
-              const elements = [
-                renderMeasureLine(measureX, partYOffset, staveCount),
-              ];
+              const elements = [];
+
+              // Add initial measure line for first measure
+              if (measureIndex === 0) {
+                elements.push(renderMeasureLine(50, partYOffset, staves));
+              }
 
               // Process elements in order
               measure.elements.forEach((element, elementIndex) => {
@@ -121,15 +164,18 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     // Update global active clefs
                     globalActiveClefs[clef.staffNumber || 1] = clef;
                   });
-                } else if (element.note) {
+                }
+
+                if (element.note) {
                   const { note } = element;
                   const staffNum = note.staff || 1;
                   const noteY = note.rest
-                    ? partYOffset + 80 + (staffNum - 1) * 80 // Using the same staff spacing as in StaveRenderer
+                    ? partYOffset + 10 + (staffNum - 1) * 120 // Using the same staff spacing as in StaveRenderer
                     : pitchToY(
                         note.pitch,
                         staffNum,
-                        globalActiveClefs[staffNum]
+                        globalActiveClefs[staffNum],
+                        partYOffset
                       );
 
                   if (!note.chord) currentX += spacing;
@@ -155,14 +201,36 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 }
               });
 
-              // Add final measure line for the last measure
+              // Add measure line at the end of current measure
+              elements.push(
+                renderMeasureLine(
+                  measureX + beats * DURATION_SPACING_UNIT * divisions,
+                  partYOffset,
+                  staves
+                )
+              );
+
+              // Add final double bar line for the last measure
               if (measureIndex === part.measures.length - 1) {
                 elements.push(
-                  renderMeasureLine(currentX + spacing, partYOffset, staveCount)
+                  <g key={`final-barline-${partIndex}-${measureIndex}`}>
+                    {renderMeasureLine(
+                      measureX + beats * DURATION_SPACING_UNIT * divisions + 1,
+                      partYOffset,
+                      staves
+                    )}
+                    {renderMeasureLine(
+                      measureX + beats * DURATION_SPACING_UNIT * divisions + 4,
+                      partYOffset,
+                      staves
+                    )}
+                  </g>
                 );
               }
 
-              return elements;
+              return (
+                <g key={`measure-${partIndex}-${measureIndex}`}>{elements}</g>
+              );
             })}
           </g>
         );

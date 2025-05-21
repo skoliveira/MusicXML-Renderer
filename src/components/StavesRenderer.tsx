@@ -6,7 +6,7 @@ export const STAFF_LINE_SPACING = 10; // Spacing between staff lines
 interface StavesRendererProps {
   yOffset: number;
   staves?: number;
-  width?: number;
+  width?: number | string | undefined;
 }
 
 export const StavesRenderer: React.FC<StavesRendererProps> = ({
