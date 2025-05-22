@@ -3,6 +3,7 @@ import { Note } from "../type";
 import { NoteHead } from "./NoteHead";
 import { StemRenderer } from "./StemRenderer";
 import { RestRenderer } from "./RestRenderer";
+import { DotsRenderer } from "./DotsRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -19,7 +20,15 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
 }) => {
   if (note.rest) {
     return (
-      <RestRenderer type={note.type} measure={note.rest.measure} x={x} y={y} />
+      <>
+        <RestRenderer
+          type={note.type}
+          measure={note.rest.measure}
+          x={x}
+          y={y}
+        />
+        {note.dots && <DotsRenderer x={x} y={y} dots={note.dots} />}
+      </>
     );
   }
 
@@ -39,6 +48,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         y={y}
         elementKey={elementKey}
       />
+      {note.dots && <DotsRenderer x={x} y={y} dots={note.dots} />}
     </>
   );
 };
