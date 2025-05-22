@@ -170,7 +170,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   const { note } = element;
                   const staffNum = note.staff || 1;
                   const noteY = note.rest
-                    ? partYOffset + 10 + (staffNum - 1) * 120 // Using the same staff spacing as in StaveRenderer
+                    ? partYOffset + 20 + (staffNum - 1) * 120 // Using the same staff spacing as in StaveRenderer
                     : pitchToY(
                         note.pitch,
                         staffNum,
