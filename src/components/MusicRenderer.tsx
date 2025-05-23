@@ -17,23 +17,38 @@ interface Props {
 const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
 
 // Get the vertical offset for a pitch based on the clef type
-const getClefOffset = (clefSign: ClefSign, line: number = 2): number => {
+const getClefOffset = (
+  clefSign: ClefSign,
+  line: number = 2,
+  octaveChange?: number
+): number => {
   // Reference point is middle C (C4)
+  let offset = 0;
   switch (clefSign) {
     case "G":
       // G-clef (treble): G4 is on the second line (line=2)
       // G4 is 7 semitones above C4, so the offset is -7 semitones * STAFF_LINE_SPACING/2
-      return (line - 2) * STAFF_LINE_SPACING;
+      offset = (2 - line) * STAFF_LINE_SPACING;
+      break;
     case "F":
       // F-clef (bass): F3 is on the fourth line (line=4)
       // F3 is 7 semitones below C4, so the offset is +7 semitones * STAFF_LINE_SPACING/2
-      return (line - 4) * STAFF_LINE_SPACING - 60;
+      offset = (4 - line) * STAFF_LINE_SPACING - 60;
+      break;
     case "C":
       // C-clef (alto/tenor): Middle C (C4) is on the specified line
-      return (line - 3) * STAFF_LINE_SPACING - 40;
+      offset = (3 - line) * STAFF_LINE_SPACING - 30;
+      break;
     default:
-      return 0;
+      offset = 0;
   }
+
+  // Apply octave change adjustment
+  if (octaveChange) {
+    offset += octaveChange * 7 * (STAFF_LINE_SPACING / 2); // 7 steps per octave
+  }
+
+  return offset;
 };
 
 // Convert a musical pitch to a vertical Y position
@@ -51,11 +66,14 @@ const pitchToY = (
 
   // Calculate base position
   const baseY = 50 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
-
   // Add staff offset and clef adjustment
   const staffOffset = (staff - 1) * STAFF_SPACING;
   const clefOffset = activeClef
-    ? getClefOffset(activeClef.sign, activeClef.line)
+    ? getClefOffset(
+        activeClef.sign,
+        activeClef.line,
+        activeClef.clefOctaveChange
+      )
     : 0;
 
   return baseY + staffOffset + clefOffset + partYOffset;
@@ -159,6 +177,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         sign={clef.sign}
                         x={currentX - 35}
                         y={y}
+                        octaveChange={clef.clefOctaveChange}
                       />
                     );
 
