@@ -4,6 +4,7 @@ import { NoteHead } from "./NoteHead";
 import { StemRenderer } from "./StemRenderer";
 import { RestRenderer } from "./RestRenderer";
 import { DotsRenderer } from "./DotsRenderer";
+import { Flag } from "./Flag";
 
 interface NoteRendererProps {
   note: Note;
@@ -18,6 +19,20 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   y,
   elementKey,
 }) => {
+  const needsFlag =
+    note.type &&
+    [
+      "eighth",
+      "16th",
+      "32nd",
+      "64th",
+      "128th",
+      "256th",
+      "512th",
+      "1024th",
+    ].includes(note.type);
+  const isUpwardStem = note.stem === "up";
+
   if (note.rest) {
     return (
       <>
@@ -47,7 +62,16 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         x={x}
         y={y}
         elementKey={elementKey}
-      />
+      />{" "}
+      {needsFlag && note.type && note.stem && (
+        <g
+          transform={
+            !isUpwardStem ? `scale(1,-1) translate(0,${-2 * y})` : undefined
+          }
+        >
+          <Flag type={note.type} x={x + (isUpwardStem ? 5 : -5)} y={y - 35} />
+        </g>
+      )}
       {note.dots && <DotsRenderer x={x} y={y} dots={note.dots} />}
     </>
   );

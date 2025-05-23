@@ -26,5 +26,5 @@ export const Flag: React.FC<FlagProps> = ({ type, x, y }) => {
     return null;
   }
 
-  return <path transform={`tranlate(${x},${y})`} d={path} />;
+  return <path transform={`translate(${x},${y})`} d={path} />;
 };
