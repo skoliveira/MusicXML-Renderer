@@ -5,6 +5,7 @@ import { StemRenderer } from "./StemRenderer";
 import { RestRenderer } from "./RestRenderer";
 import { DotsRenderer } from "./DotsRenderer";
 import { Flag } from "./Flag";
+import { AccidentalRenderer } from "./AccidentalRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -49,6 +50,9 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
 
   return (
     <>
+      {note.accidental && (
+        <AccidentalRenderer type={note.accidental} x={x} y={y} />
+      )}
       <NoteHead
         type={note.type}
         notehead={note.notehead}
