@@ -8,6 +8,7 @@ import {
   STAFF_LINE_SPACING,
 } from "./StavesRenderer";
 import { ClefRenderer } from "./ClefRenderer";
+import { KeySignatureRenderer } from "./KeySignatureRenderer";
 
 interface Props {
   score: ScorePartwise;
@@ -156,7 +157,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       <ClefRenderer
                         key={`clef-${partIndex}-${measureIndex}-${elementIndex}-${clef.staffNumber}`}
                         sign={clef.sign}
-                        x={currentX - 25}
+                        x={currentX - 35}
                         y={y}
                       />
                     );
@@ -164,6 +165,29 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     // Update global active clefs
                     globalActiveClefs[clef.staffNumber || 1] = clef;
                   });
+                }
+
+                // Add key signature rendering after clefs
+                if (element.attributes?.key) {
+                  element.attributes.key.forEach((key, keyIndex) => {
+                    for (let staff = 1; staff <= staves; staff++) {
+                      const staffYOffset =
+                        partYOffset + (staff - 1) * STAFF_SPACING + 50;
+                      elements.push(
+                        <KeySignatureRenderer
+                          key={`key-${partIndex}-${measureIndex}-${elementIndex}-${keyIndex}-${staff}`}
+                          fifths={key.fifths}
+                          x={currentX}
+                          yOffset={staffYOffset}
+                          activeClef={globalActiveClefs[staff]}
+                        />
+                      );
+                    }
+                  });
+                  // Add some spacing after the key signature
+                  if (!element.note) {
+                    currentX += Math.abs(element.attributes.key[0].fifths) * 8;
+                  }
                 }
 
                 if (element.note) {
