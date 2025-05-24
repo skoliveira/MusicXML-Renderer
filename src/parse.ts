@@ -33,6 +33,7 @@ import {
   PartGroup,
   Beams,
   Pitch,
+  Unpitched,
   Rest,
   ScorePart,
   Stem,
@@ -49,6 +50,15 @@ export function parsePitch(elem: Element): Pitch {
     : undefined;
 
   return { step, octave, alter };
+}
+
+export function parseUnpitched(elem: Element): Unpitched {
+  const displayStep = elem.querySelector("display-step")?.textContent as Step;
+  const displayOctave = parseInt(
+    elem.querySelector("display-octave")?.textContent || "0"
+  ) as Octave;
+
+  return { displayStep, displayOctave };
 }
 
 export function parseRest(elem: Element): Rest {
@@ -187,6 +197,9 @@ export function parseNote(elem: Element): Note {
   const pitch = elem.querySelector("pitch")
     ? parsePitch(elem.querySelector("pitch")!)
     : undefined;
+  const unpitched = elem.querySelector("unpitched")
+    ? parseUnpitched(elem.querySelector("unpitched")!)
+    : undefined;
   const rest = elem.querySelector("rest")
     ? parseRest(elem.querySelector("rest")!)
     : undefined;
@@ -214,6 +227,7 @@ export function parseNote(elem: Element): Note {
   return {
     chord,
     pitch,
+    unpitched,
     rest,
     duration,
     type,

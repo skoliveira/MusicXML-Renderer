@@ -228,6 +228,11 @@ export interface Pitch {
   alter?: number;
 }
 
+export interface Unpitched {
+  displayStep: Step;
+  displayOctave: Octave;
+}
+
 export interface Rest {
   measure?: "yes" | "no";
   displayStep?: Step;
@@ -351,6 +356,7 @@ export interface Notation {
 export interface Note {
   chord?: boolean;
   pitch?: Pitch;
+  unpitched?: Unpitched;
   rest?: Rest;
   duration: number;
   type?: NoteType;
