@@ -1,5 +1,5 @@
 import React from "react";
-import { Pitch, ScorePartwise, Clef, ClefSign } from "../type";
+import { Pitch, ScorePartwise, Clef, ClefSign, Unpitched } from "../type";
 import { NoteRenderer } from "./NoteRenderer";
 import {
   StavesRenderer,
@@ -39,6 +39,13 @@ const getClefOffset = (
       // C-clef (alto/tenor): Middle C (C4) is on the specified line
       offset = (3 - line) * STAFF_LINE_SPACING - 30;
       break;
+    case "percussion":
+      // C-clef (alto/tenor): Middle C (C4) is on the specified line
+      offset = (2 - line) * STAFF_LINE_SPACING;
+      break;
+    case "TAB":
+      offset = (5 - line) * STAFF_LINE_SPACING - 35;
+      break;
     default:
       offset = 0;
   }
@@ -56,8 +63,30 @@ const pitchToY = (
   pitch?: Pitch,
   staff = 1,
   activeClef?: Clef,
-  partYOffset = 0
+  partYOffset = 0,
+  unpitched?: Unpitched
 ): number => {
+  if (unpitched) {
+    // Handle unpitched notes similar to regular pitched notes
+    const scale = ["C", "D", "E", "F", "G", "A", "B"];
+    const pitchIndex = scale.indexOf(unpitched.displayStep);
+    const offsetFromMiddleC = (unpitched.displayOctave - 4) * 7 + pitchIndex;
+
+    // Calculate base position
+    const baseY = 50 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
+    // Add staff offset and clef adjustment
+    const staffOffset = (staff - 1) * STAFF_SPACING;
+    const clefOffset = activeClef
+      ? getClefOffset(
+          activeClef.sign,
+          activeClef.line,
+          activeClef.clefOctaveChange
+        )
+      : 0;
+
+    return baseY + staffOffset + clefOffset + partYOffset;
+  }
+
   if (!pitch) return 0;
 
   const scale = ["C", "D", "E", "F", "G", "A", "B"];
@@ -218,7 +247,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         note.pitch,
                         staffNum,
                         globalActiveClefs[staffNum],
-                        partYOffset
+                        partYOffset,
+                        note.unpitched
                       );
 
                   if (!note.chord) currentX += spacing;
