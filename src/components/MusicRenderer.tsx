@@ -265,6 +265,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       x={currentX}
                       y={noteY}
                       elementKey={key}
+                      partYOffset={partYOffset}
                     />
                   );
                 }

@@ -6,12 +6,14 @@ import { RestRenderer } from "./RestRenderer";
 import { DotsRenderer } from "./DotsRenderer";
 import { Flag } from "./Flag";
 import { AccidentalRenderer } from "./AccidentalRenderer";
+import { LedgerLines } from "./LedgerLines";
 
 interface NoteRendererProps {
   note: Note;
   x: number;
   y: number;
   elementKey: string;
+  partYOffset?: number;
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -19,6 +21,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   x,
   y,
   elementKey,
+  partYOffset = 0,
 }) => {
   const needsFlag =
     note.type &&
@@ -50,6 +53,12 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
 
   return (
     <>
+      <LedgerLines
+        x={x}
+        y={y}
+        staff={note.staff || 1}
+        staffYOffset={partYOffset}
+      />
       {note.accidental && (
         <AccidentalRenderer type={note.accidental} x={x} y={y} />
       )}
