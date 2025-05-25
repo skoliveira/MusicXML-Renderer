@@ -112,14 +112,20 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
   // Calculate total width needed for all parts
   const maxWidth = Math.max(
     ...score.parts.map((part) => {
-      // Find initial attributes in first measure
-      const firstMeasureAttrs = part.measures[0]?.elements.find(
-        (e) => e.attributes
-      )?.attributes;
-      const divisions = firstMeasureAttrs?.divisions ?? 1;
-      const beats = firstMeasureAttrs?.time?.find((t) => t.beats)?.beats ?? 4;
-      const measureWidth = beats * DURATION_SPACING_UNIT * divisions;
-      return measureWidth * part.measures.length;
+      const totalWidth = part.measures.reduce((sum, measure) => {
+        const attrs = measure.elements.find((e) => e.attributes)?.attributes;
+
+        const divisions = attrs?.divisions ?? 1;
+        const beats = attrs?.time?.find((t) => t.beats)?.beats ?? 4;
+        const beatType = attrs?.time?.find((t) => t.beatType)?.beatType ?? 4;
+
+        const measureWidth =
+          (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType;
+
+        return sum + measureWidth;
+      }, 0);
+
+      return totalWidth;
     })
   );
 
@@ -151,6 +157,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
         const firstMeasureAttrs = part.measures[0]?.elements.find(
           (e) => e.attributes
         )?.attributes;
+        let beats = firstMeasureAttrs?.time?.find((t) => t.beats)?.beats ?? 4;
+        let beatType =
+          firstMeasureAttrs?.time?.find((t) => t.beatType)?.beatType ?? 4;
         const divisions = firstMeasureAttrs?.divisions ?? 1;
         const staves = firstMeasureAttrs?.staves ?? 1;
         const initialClefs = firstMeasureAttrs?.clefs ?? [];
@@ -170,13 +179,20 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
             />
 
             {part.measures.map((measure, measureIndex) => {
-              const beats =
+              beats =
                 measure.elements
                   .find((e) => e.attributes)
-                  ?.attributes?.time?.find((t) => t.beats)?.beats ?? 4;
+                  ?.attributes?.time?.find((t) => t.beats)?.beats ?? beats;
+              beatType =
+                measure.elements
+                  .find((e) => e.attributes)
+                  ?.attributes?.time?.find((t) => t.beatType)?.beatType ??
+                beatType;
 
               const measureX =
-                measureIndex * beats * DURATION_SPACING_UNIT * divisions + 50;
+                (4 * measureIndex * beats * DURATION_SPACING_UNIT * divisions) /
+                  beatType +
+                50;
               let currentX = measureX;
               let spacing = 0;
 
