@@ -40,7 +40,6 @@ const getClefOffset = (
       offset = (3 - line) * STAFF_LINE_SPACING - 30;
       break;
     case "percussion":
-      // C-clef (alto/tenor): Middle C (C4) is on the specified line
       offset = (2 - line) * STAFF_LINE_SPACING;
       break;
     case "TAB":
@@ -59,6 +58,25 @@ const getClefOffset = (
 };
 
 // Convert a musical pitch to a vertical Y position
+const scale = ["C", "D", "E", "F", "G", "A", "B"];
+const scaleIndexCache: Record<string, number> = {};
+
+// Memoized function to get index of step in scale
+const getStepIndex = (step: string): number => {
+  if (scaleIndexCache[step] !== undefined) {
+    return scaleIndexCache[step];
+  }
+  const index = scale.indexOf(step);
+  scaleIndexCache[step] = index;
+  return index;
+};
+
+// Calculate vertical offset from middle C
+const getOffsetFromMiddleC = (step: string, octave: number): number => {
+  return (octave - 4) * 7 + getStepIndex(step);
+};
+
+// Convert a musical pitch to a vertical Y position
 const pitchToY = (
   pitch?: Pitch,
   staff = 1,
@@ -66,36 +84,15 @@ const pitchToY = (
   partYOffset = 0,
   unpitched?: Unpitched
 ): number => {
-  if (unpitched) {
-    // Handle unpitched notes similar to regular pitched notes
-    const scale = ["C", "D", "E", "F", "G", "A", "B"];
-    const pitchIndex = scale.indexOf(unpitched.displayStep);
-    const offsetFromMiddleC = (unpitched.displayOctave - 4) * 7 + pitchIndex;
+  if (!pitch && !unpitched) return 0;
 
-    // Calculate base position
-    const baseY = 50 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
-    // Add staff offset and clef adjustment
-    const staffOffset = (staff - 1) * STAFF_SPACING;
-    const clefOffset = activeClef
-      ? getClefOffset(
-          activeClef.sign,
-          activeClef.line,
-          activeClef.clefOctaveChange
-        )
-      : 0;
+  const step = unpitched?.displayStep || pitch?.step;
+  const octave = unpitched?.displayOctave ?? pitch?.octave;
 
-    return baseY + staffOffset + clefOffset + partYOffset;
-  }
+  if (step === undefined || octave === undefined) return 0;
 
-  if (!pitch) return 0;
-
-  const scale = ["C", "D", "E", "F", "G", "A", "B"];
-  const pitchIndex = scale.indexOf(pitch.step);
-  const offsetFromMiddleC = (pitch.octave - 4) * 7 + pitchIndex;
-
-  // Calculate base position
+  const offsetFromMiddleC = getOffsetFromMiddleC(step, octave);
   const baseY = 50 - offsetFromMiddleC * (STAFF_LINE_SPACING / 2);
-  // Add staff offset and clef adjustment
   const staffOffset = (staff - 1) * STAFF_SPACING;
   const clefOffset = activeClef
     ? getClefOffset(
@@ -192,7 +189,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               const measureX =
                 (4 * measureIndex * beats * DURATION_SPACING_UNIT * divisions) /
                   beatType +
-                50;
+                100;
               let currentX = measureX;
               let spacing = 0;
 
@@ -200,7 +197,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
               // Add initial measure line for first measure
               if (measureIndex === 0) {
-                elements.push(renderMeasureLine(50, partYOffset, staves));
+                elements.push(renderMeasureLine(100, partYOffset, staves));
               }
 
               // Process elements in order
@@ -220,7 +217,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       <ClefRenderer
                         key={`clef-${partIndex}-${measureIndex}-${elementIndex}-${clef.staffNumber}`}
                         sign={clef.sign}
-                        x={currentX - 35}
+                        x={currentX - 80}
                         y={y}
                         octaveChange={clef.clefOctaveChange}
                       />
@@ -241,24 +238,20 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         <KeySignatureRenderer
                           key={`key-${partIndex}-${measureIndex}-${elementIndex}-${keyIndex}-${staff}`}
                           fifths={key.fifths}
-                          x={currentX}
+                          x={currentX - 45}
                           yOffset={staffYOffset}
                           activeClef={globalActiveClefs[staff]}
                         />
                       );
                     }
                   });
-                  // Add some spacing after the key signature
-                  if (!element.note) {
-                    currentX += Math.abs(element.attributes.key[0].fifths) * 8;
-                  }
                 }
 
                 if (element.note) {
                   const { note } = element;
                   const staffNum = note.staff || 1;
                   const noteY = note.rest
-                    ? partYOffset + 20 + (staffNum - 1) * 120 // Using the same staff spacing as in StaveRenderer
+                    ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
                     : pitchToY(
                         note.pitch,
                         staffNum,
