@@ -9,6 +9,7 @@ import {
 } from "./StavesRenderer";
 import { ClefRenderer } from "./ClefRenderer";
 import { KeySignatureRenderer } from "./KeySignatureRenderer";
+import { TimeSignatureRenderer } from "./TimeSignatureRenderer";
 
 interface Props {
   score: ScorePartwise;
@@ -241,6 +242,25 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           x={currentX - 45}
                           yOffset={staffYOffset}
                           activeClef={globalActiveClefs[staff]}
+                        />
+                      );
+                    }
+                  });
+                }
+
+                // Add time signature rendering after key signature
+                if (element.attributes?.time) {
+                  element.attributes.time.forEach((time, timeIndex) => {
+                    for (let staff = 1; staff <= staves; staff++) {
+                      const staffYOffset =
+                        partYOffset + (staff - 1) * STAFF_SPACING + 50;
+                      elements.push(
+                        <TimeSignatureRenderer
+                          key={`time-${partIndex}-${measureIndex}-${elementIndex}-${timeIndex}-${staff}`}
+                          beats={time.beats}
+                          beatType={time.beatType}
+                          x={currentX - 25}
+                          yOffset={staffYOffset - 35}
                         />
                       );
                     }
