@@ -127,7 +127,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
     })
   );
 
-  const svgWidth = maxWidth + 55;
+  const svgWidth = maxWidth + 125;
 
   // Function to get part offset based on previous parts' staves
   const getPartYOffset = (partIndex: number): number => {
@@ -190,7 +190,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               const measureX =
                 (4 * measureIndex * beats * DURATION_SPACING_UNIT * divisions) /
                   beatType +
-                100;
+                125;
               let currentX = measureX;
               let spacing = 0;
 
@@ -198,7 +198,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
               // Add initial measure line for first measure
               if (measureIndex === 0) {
-                elements.push(renderMeasureLine(100, partYOffset, staves));
+                elements.push(
+                  renderMeasureLine(
+                    125 - DURATION_SPACING_UNIT / 2,
+                    partYOffset,
+                    staves
+                  )
+                );
               }
 
               // Process elements in order
@@ -218,7 +224,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       <ClefRenderer
                         key={`clef-${partIndex}-${measureIndex}-${elementIndex}-${clef.staffNumber}`}
                         sign={clef.sign}
-                        x={currentX - 80}
+                        x={currentX - 100}
                         y={y}
                         octaveChange={clef.clefOctaveChange}
                       />
@@ -239,7 +245,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         <KeySignatureRenderer
                           key={`key-${partIndex}-${measureIndex}-${elementIndex}-${keyIndex}-${staff}`}
                           fifths={key.fifths}
-                          x={currentX - 45}
+                          x={currentX - 65}
                           yOffset={staffYOffset}
                           activeClef={globalActiveClefs[staff]}
                         />
@@ -259,7 +265,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           key={`time-${partIndex}-${measureIndex}-${elementIndex}-${timeIndex}-${staff}`}
                           beats={time.beats}
                           beatType={time.beatType}
-                          x={currentX - 25}
+                          x={currentX - 45}
                           yOffset={staffYOffset - 35}
                         />
                       );
@@ -307,7 +313,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               // Add measure line at the end of current measure
               elements.push(
                 renderMeasureLine(
-                  measureX + beats * DURATION_SPACING_UNIT * divisions,
+                  measureX +
+                    (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType -
+                    DURATION_SPACING_UNIT / 2,
                   partYOffset,
                   staves
                 )
@@ -318,12 +326,20 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 elements.push(
                   <g key={`final-barline-${partIndex}-${measureIndex}`}>
                     {renderMeasureLine(
-                      measureX + beats * DURATION_SPACING_UNIT * divisions + 1,
+                      measureX +
+                        (4 * beats * DURATION_SPACING_UNIT * divisions) /
+                          beatType -
+                        DURATION_SPACING_UNIT / 2 +
+                        1,
                       partYOffset,
                       staves
                     )}
                     {renderMeasureLine(
-                      measureX + beats * DURATION_SPACING_UNIT * divisions + 4,
+                      measureX +
+                        (4 * beats * DURATION_SPACING_UNIT * divisions) /
+                          beatType -
+                        DURATION_SPACING_UNIT / 2 -
+                        3,
                       partYOffset,
                       staves
                     )}
