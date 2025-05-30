@@ -304,7 +304,11 @@ export function parseHarmony(elem: Element): Harmony {
       }
     : undefined;
 
-  return { root, numeral, kind, inversion, bass, degree };
+  const offset = elem.querySelector("offset")
+    ? parseInt(elem.querySelector("offset")!.textContent || "0")
+    : undefined;
+
+  return { root, numeral, kind, inversion, bass, degree, offset };
 }
 
 export function parseAttributes(elem: Element): Attributes {

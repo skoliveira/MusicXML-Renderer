@@ -417,6 +417,7 @@ export interface Harmony {
   inversion?: number;
   bass?: Bass;
   degree?: Degree;
+  offset?: number;
 }
 
 export interface Backup {
