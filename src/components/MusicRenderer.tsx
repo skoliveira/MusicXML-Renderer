@@ -1,6 +1,7 @@
 import React from "react";
 import { Pitch, ScorePartwise, Clef, ClefSign, Unpitched } from "../type";
 import { NoteRenderer } from "./NoteRenderer";
+import { ChordSymbolRenderer } from "./ChordSymbolRenderer";
 import {
   StavesRenderer,
   renderMeasureLine,
@@ -271,6 +272,26 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       );
                     }
                   });
+                }
+
+                // Render harmony elements (chord symbols)
+                if (element.harmony) {
+                  const chordOffset = element.harmony.offset
+                    ? (element.harmony.offset *
+                        beats *
+                        DURATION_SPACING_UNIT *
+                        divisions) /
+                      beatType
+                    : 0;
+                  elements.push(
+                    <ChordSymbolRenderer
+                      key={`harmony-${partIndex}-${measureIndex}-${elementIndex}`}
+                      harmony={element.harmony}
+                      x={currentX}
+                      y={partYOffset - 20} // Position above the staff
+                      xOffset={chordOffset}
+                    />
+                  );
                 }
 
                 if (element.note) {
