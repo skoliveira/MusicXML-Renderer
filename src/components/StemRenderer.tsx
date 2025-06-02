@@ -7,6 +7,7 @@ interface StemRendererProps {
   x: number;
   y: number;
   elementKey: string;
+  stemLength?: number; // optional prop
 }
 
 export const StemRenderer: React.FC<StemRendererProps> = ({
@@ -15,214 +16,106 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
   x,
   y,
   elementKey,
+  stemLength = 35, // default to 35 if not provided
 }) => {
+  const renderLine = (
+    offsetX: number,
+    startY: number,
+    direction: "up" | "down",
+    keySuffix: string
+  ) => {
+    const x1 = x + offsetX;
+    const y1 = startY;
+    const y2 = direction === "up" ? startY - stemLength : startY + stemLength;
+
+    return (
+      <line
+        key={`${keySuffix}-${elementKey}`}
+        x1={x1}
+        y1={y1}
+        x2={x1}
+        y2={y2}
+        stroke="black"
+      />
+    );
+  };
+
   const durationHead = () => {
     switch (stem) {
       case "up":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 5}
-            y1={y}
-            x2={x + 5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
+        return renderLine(+5, y, "up", "stem-up");
       case "down":
-        return (
-          <line
-            key={`stem-down-${elementKey}`}
-            x1={x - 5}
-            y1={y}
-            x2={x - 5}
-            y2={y + 35}
-            stroke="black"
-          />
-        );
+        return renderLine(-5, y, "down", "stem-down");
       case "double":
         return (
           <g>
-            <line
-              key={`stem-up-${elementKey}`}
-              x1={x + 5}
-              y1={y}
-              x2={x + 5}
-              y2={y - 35}
-              stroke="black"
-            />
-            <line
-              key={`stem-down-${elementKey}`}
-              x1={x - 5}
-              y1={y}
-              x2={x - 5}
-              y2={y + 35}
-              stroke="black"
-            />
+            {renderLine(+5, y, "up", "stem-up")}
+            {renderLine(-5, y, "down", "stem-down")}
           </g>
         );
-      case "none":
+      default:
         return <g />;
     }
   };
 
   const specialNotehead = () => {
-    switch (notehead) {
-      case "arrow down":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x}
-            y1={y}
-            x2={x}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "arrow up":
-        return (
-          <line
-            key={`stem-down-${elementKey}`}
-            x1={x}
-            y1={y}
-            x2={x}
-            y2={y + 35}
-            stroke="black"
-          />
-        );
-      case "cross":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 6}
-            y1={y - 1}
-            x2={x + 6}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "diamond":
-      case "mi":
-      case "re":
-      case "rectangle":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4.4}
-            y1={y}
-            x2={x + 4.4}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "do":
-      case "triangle":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 3.5}
-            y1={y + 3}
-            x2={x + 3.5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "fa":
-        return (
-          <line
-            key={`stem-down-${elementKey}`}
-            x1={x - 5}
-            y1={y - 5}
-            x2={x - 5}
-            y2={y + 35}
-            stroke="black"
-          />
-        );
-      case "fa up":
-      case "left triangle":
-        return (
-          <line
-            key={`stem-down-${elementKey}`}
-            x1={x + 5}
-            y1={y + 5}
-            x2={x + 5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "inverted triangle":
-      case "la":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4}
-            y1={y}
-            x2={x + 4}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "slash":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4}
-            y1={y - 3}
-            x2={x + 4}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "square":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 3.5}
-            y1={y}
-            x2={x + 3.5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "ti":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4.5}
-            y1={y - 1}
-            x2={x + 4.5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      case "x":
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 4}
-            y1={y - 3.5}
-            x2={x + 4}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
-      default:
-        return (
-          <line
-            key={`stem-up-${elementKey}`}
-            x1={x + 5}
-            y1={y}
-            x2={x + 5}
-            y2={y - 35}
-            stroke="black"
-          />
-        );
+    const upwardAt44 = new Set<NoteheadValue>([
+      "diamond",
+      "mi",
+      "re",
+      "rectangle",
+    ]);
+    if (notehead && upwardAt44.has(notehead)) {
+      return renderLine(+4.4, y, "up", "stem-up");
     }
+
+    const upFromYPlus3 = new Set<NoteheadValue>(["do", "triangle"]);
+    if (notehead && upFromYPlus3.has(notehead)) {
+      return renderLine(+3.5, y + 3, "up", "stem-up");
+    }
+
+    if (notehead === "cross") {
+      return renderLine(+6, y - 1, "up", "stem-up");
+    }
+
+    if (notehead === "slash") {
+      return renderLine(+4, y - 3, "up", "stem-up");
+    }
+
+    if (notehead === "square") {
+      return renderLine(+3.5, y, "up", "stem-up");
+    }
+
+    if (notehead === "ti") {
+      return renderLine(+4.5, y - 1, "up", "stem-up");
+    }
+
+    if (notehead === "x") {
+      return renderLine(+4, y - 3.5, "up", "stem-up");
+    }
+
+    if (notehead === "arrow down") {
+      return renderLine(0, y, "up", "stem-up");
+    }
+
+    if (notehead === "arrow up") {
+      return renderLine(0, y, "down", "stem-down");
+    }
+
+    if (notehead === "fa") {
+      return renderLine(-5, y - 5, "down", "stem-down");
+    }
+
+    if (notehead === "fa up" || notehead === "left triangle") {
+      return renderLine(+5, y + 5, "up", "stem-down");
+    }
+
+    if (notehead === "inverted triangle" || notehead === "la") {
+      return renderLine(+4, y, "up", "stem-up");
+    }
+
+    return renderLine(+5, y, "up", "stem-up");
   };
 
-  if (!notehead) {
-    return durationHead();
-  }
-
-  return specialNotehead();
+  return notehead ? specialNotehead() : durationHead();
 };
