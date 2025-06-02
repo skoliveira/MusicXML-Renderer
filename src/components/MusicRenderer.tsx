@@ -29,12 +29,10 @@ const getClefOffset = (
   switch (clefSign) {
     case "G":
       // G-clef (treble): G4 is on the second line (line=2)
-      // G4 is 7 semitones above C4, so the offset is -7 semitones * STAFF_LINE_SPACING/2
       offset = (2 - line) * STAFF_LINE_SPACING;
       break;
     case "F":
       // F-clef (bass): F3 is on the fourth line (line=4)
-      // F3 is 7 semitones below C4, so the offset is +7 semitones * STAFF_LINE_SPACING/2
       offset = (4 - line) * STAFF_LINE_SPACING - 60;
       break;
     case "C":
@@ -147,8 +145,17 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
     return prevOffset + prevPartStaves * STAFF_SPACING;
   };
 
+  // Compute total height dynamically based on number of parts and their staves
+  const lastPartIndex = score.parts.length - 1;
+  const lastPartYOffset = getPartYOffset(lastPartIndex);
+  const lastPartAttrs = score.parts[lastPartIndex].measures[0]?.elements.find(
+    (e) => e.attributes
+  )?.attributes;
+  const lastPartStaves = lastPartAttrs?.staves ?? 1;
+  const svgHeight = lastPartYOffset + lastPartStaves * STAFF_SPACING + 60;
+
   return (
-    <svg width={svgWidth} height={1000}>
+    <svg width={svgWidth} height={svgHeight}>
       {score.parts.map((part, partIndex) => {
         const partYOffset = getPartYOffset(partIndex);
 
@@ -211,7 +218,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               // Process elements in order
               measure.elements.forEach((element, elementIndex) => {
                 if (element.attributes?.clefs) {
-                  // Render clefs where they appear in the music
                   element.attributes.clefs.forEach((clef) => {
                     const staffIndex = (clef.staffNumber || 1) - 1;
                     const staffYOffset =
