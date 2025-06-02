@@ -410,6 +410,20 @@ export interface Degree {
   degreeType: "add" | "alter" | "subtract";
 }
 
+export interface FrameNote {
+  string: number;
+  fret: number;
+  fingering?: number;
+  barre?: "start" | "stop";
+}
+
+export interface Frame {
+  frameStrings: number;
+  frameFrets: number;
+  firstFret?: number;
+  frameNote: FrameNote[];
+}
+
 export interface Harmony {
   root?: Root;
   numeral?: Numeral;
@@ -418,6 +432,7 @@ export interface Harmony {
   bass?: Bass;
   degree?: Degree;
   offset?: number;
+  frame?: Frame;
 }
 
 export interface Backup {

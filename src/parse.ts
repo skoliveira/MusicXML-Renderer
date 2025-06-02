@@ -308,7 +308,33 @@ export function parseHarmony(elem: Element): Harmony {
     ? parseInt(elem.querySelector("offset")!.textContent || "0")
     : undefined;
 
-  return { root, numeral, kind, inversion, bass, degree, offset };
+  const frame = elem.querySelector("frame")
+    ? {
+        frameStrings: parseInt(
+          elem.querySelector("frame-strings")?.textContent || "0"
+        ),
+        frameFrets: parseInt(
+          elem.querySelector("frame-frets")?.textContent || "0"
+        ),
+        firstFret: parseInt(
+          elem.querySelector("first-fret")?.textContent || "0"
+        ),
+        frameNote: Array.from(elem.querySelectorAll("frame-note")).map(
+          (note) => ({
+            string: parseInt(note.querySelector("string")?.textContent || "0"),
+            fret: parseInt(note.querySelector("fret")?.textContent || "0"),
+            fingering: parseInt(
+              note.querySelector("fingering")?.textContent || "0"
+            ),
+            barre: note.querySelector("barre")?.getAttribute("type") as
+              | "start"
+              | "stop",
+          })
+        ),
+      }
+    : undefined;
+
+  return { root, numeral, kind, inversion, bass, degree, offset, frame };
 }
 
 export function parseAttributes(elem: Element): Attributes {
