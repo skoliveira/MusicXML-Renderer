@@ -27,6 +27,7 @@ export const ChordSymbolRenderer: React.FC<Props> = ({
 
     // Add kind
     switch (harmony.kind) {
+      case "none":
       case "major":
         // Major is typically not shown unless it's specifically needed
         break;
