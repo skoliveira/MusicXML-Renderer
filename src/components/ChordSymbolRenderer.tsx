@@ -1,5 +1,6 @@
 import React from "react";
 import { Harmony } from "../type";
+import { FretboardRenderer } from "./FretboardRenderer";
 
 interface Props {
   harmony: Harmony;
@@ -94,17 +95,25 @@ export const ChordSymbolRenderer: React.FC<Props> = ({
 
     return text;
   };
-
   return (
-    <text
-      x={x + xOffset}
-      y={y}
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fontSize="16"
-      fontFamily="serif"
-    >
-      {getChordText(harmony)}
-    </text>
+    <g>
+      <text
+        x={x + xOffset}
+        y={y - 30}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        fontSize="16"
+        fontFamily="serif"
+      >
+        {getChordText(harmony)}
+      </text>
+      {harmony.frame && (
+        <FretboardRenderer
+          frame={harmony.frame}
+          x={x + xOffset - 15}
+          y={y - 15}
+        />
+      )}
+    </g>
   );
 };
