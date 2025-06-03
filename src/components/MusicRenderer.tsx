@@ -1,5 +1,6 @@
+// components/MusicRenderer.tsx
 import React from "react";
-import { Pitch, ScorePartwise, Clef, ClefSign, Unpitched } from "../type";
+import { Pitch, ScorePartwise, Clef, ClefSign, Unpitched, Note } from "../type";
 import { NoteRenderer } from "./NoteRenderer";
 import { ChordSymbolRenderer } from "./ChordSymbolRenderer";
 import {
@@ -14,6 +15,18 @@ import { TimeSignatureRenderer } from "./TimeSignatureRenderer";
 
 interface Props {
   score: ScorePartwise;
+}
+
+interface ChordGroup {
+  notes: Note[];
+  x: number;
+  duration: number;
+  elementIndices: number[];
+}
+
+interface ChordNoteWithPosition {
+  note: Note;
+  y: number;
 }
 
 const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
@@ -103,6 +116,43 @@ const pitchToY = (
     : 0;
 
   return baseY + staffOffset + clefOffset + partYOffset;
+};
+
+// Function to group notes into chords
+const groupNotesIntoChords = (elements: any[]): ChordGroup[] => {
+  const chordGroups: ChordGroup[] = [];
+  let currentChord: ChordGroup | null = null;
+
+  elements.forEach((element, index) => {
+    if (element.note) {
+      const note = element.note;
+
+      if (note.chord && currentChord) {
+        // This note is part of the current chord
+        currentChord.notes.push(note);
+        currentChord.elementIndices.push(index);
+      } else {
+        // This is either a new single note or the start of a new chord
+        if (currentChord) {
+          chordGroups.push(currentChord);
+        }
+
+        currentChord = {
+          notes: [note],
+          x: 0, // Will be set later
+          duration: note.duration,
+          elementIndices: [index],
+        };
+      }
+    }
+  });
+
+  // Don't forget the last chord group
+  if (currentChord) {
+    chordGroups.push(currentChord);
+  }
+
+  return chordGroups;
 };
 
 export const MusicRenderer: React.FC<Props> = ({ score }) => {
@@ -204,6 +254,10 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
               const elements = [];
 
+              // Group notes into chords
+              const chordGroups = groupNotesIntoChords(measure.elements);
+              let chordGroupIndex = 0;
+
               // Add initial measure line for first measure
               if (measureIndex === 0) {
                 elements.push(
@@ -301,35 +355,65 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 }
 
                 if (element.note) {
-                  const { note } = element;
-                  const staffNum = note.staff || 1;
-                  const noteY = note.rest
-                    ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
-                    : pitchToY(
-                        note.pitch,
-                        staffNum,
-                        globalActiveClefs[staffNum],
-                        partYOffset,
-                        note.unpitched
+                  // Check if this element is the start of a chord group
+                  const currentChordGroup = chordGroups[chordGroupIndex];
+                  const isFirstNoteInChord =
+                    currentChordGroup &&
+                    currentChordGroup.elementIndices[0] === elementIndex;
+
+                  if (isFirstNoteInChord) {
+                    // Render entire chord group
+                    const chordGroup = currentChordGroup;
+
+                    if (!element.note.chord) {
+                      currentX += spacing;
+                    }
+                    spacing = chordGroup.duration * DURATION_SPACING_UNIT;
+
+                    // Pre-calculate all note positions for chord stem calculation
+                    const chordNotesWithPositions: ChordNoteWithPosition[] =
+                      chordGroup.notes.map((note) => {
+                        const staffNum = note.staff || 1;
+                        const noteY = note.rest
+                          ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
+                          : pitchToY(
+                              note.pitch,
+                              staffNum,
+                              globalActiveClefs[staffNum],
+                              partYOffset,
+                              note.unpitched
+                            );
+                        return { note, y: noteY };
+                      });
+
+                    // Render all notes in the chord
+                    chordGroup.notes.forEach((note, noteIndex) => {
+                      const noteY = chordNotesWithPositions[noteIndex].y;
+
+                      const key = `${
+                        note.rest ? "rest" : "note"
+                      }-${partIndex}-${measureIndex}-${
+                        chordGroup.elementIndices[noteIndex]
+                      }`;
+
+                      elements.push(
+                        <NoteRenderer
+                          key={key}
+                          note={note}
+                          x={currentX}
+                          y={noteY}
+                          elementKey={key}
+                          partYOffset={partYOffset}
+                          isChord={chordGroup.notes.length > 1}
+                          isFirstInChord={noteIndex === 0}
+                          chordNotes={chordNotesWithPositions}
+                        />
                       );
+                    });
 
-                  if (!note.chord) currentX += spacing;
-                  spacing = note.duration * DURATION_SPACING_UNIT;
-
-                  const key = `${
-                    note.rest ? "rest" : "note"
-                  }-${partIndex}-${measureIndex}-${elementIndex}`;
-
-                  elements.push(
-                    <NoteRenderer
-                      key={key}
-                      note={note}
-                      x={currentX}
-                      y={noteY}
-                      elementKey={key}
-                      partYOffset={partYOffset}
-                    />
-                  );
+                    chordGroupIndex++;
+                  }
+                  // If it's not the first note in a chord, it's already been rendered
                 }
 
                 if (element.backup) {
