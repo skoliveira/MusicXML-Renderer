@@ -99,7 +99,7 @@ export const ChordSymbolRenderer: React.FC<Props> = ({
     <g>
       <text
         x={x + xOffset}
-        y={y - 30}
+        y={harmony.frame ? y - 30 : y - 15}
         textAnchor="middle"
         dominantBaseline="middle"
         fontSize="16"
