@@ -63,7 +63,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
           x2={x + diagramWidth}
           y2={getFretY(i)}
           stroke="black"
-          strokeWidth={i === 0 && firstFret === 1 ? nutHeight : 0.5}
+          strokeWidth={i === 0 && firstFret === 0 ? nutHeight : 0.5}
         />
       ))}
 
@@ -85,7 +85,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
         <text
           x={x - 4}
           y={y + fretSpacing / 2}
-          fontSize="5"
+          fontSize="9"
           textAnchor="middle"
           dominantBaseline="middle"
           fill="black"
