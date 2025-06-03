@@ -119,18 +119,8 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
           return (
             <g key={`note-${index}`}>
               <g stroke="black" strokeWidth={0.75}>
-                <line
-                  x1={stringX - 1.5}
-                  y1={y - 7.5}
-                  x2={stringX + 1.5}
-                  y2={y - 4.5}
-                />
-                <line
-                  x1={stringX - 1.5}
-                  y1={y - 4.5}
-                  x2={stringX + 1.5}
-                  y2={y - 7.5}
-                />
+                <line x1={stringX - 2} y1={y - 8} x2={stringX + 2} y2={y - 4} />
+                <line x1={stringX - 2} y1={y - 4} x2={stringX + 2} y2={y - 8} />
               </g>
             </g>
           );
