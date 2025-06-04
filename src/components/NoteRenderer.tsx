@@ -1,6 +1,6 @@
 // components/NoteRenderer.tsx
 import React from "react";
-import { Note } from "../type";
+import { Note, ClefSign } from "../type";
 import { NoteHead } from "./NoteHead";
 import { StemRenderer } from "./StemRenderer";
 import { RestRenderer } from "./RestRenderer";
@@ -8,6 +8,7 @@ import { DotsRenderer } from "./DotsRenderer";
 import { Flag } from "./Flag";
 import { AccidentalRenderer } from "./AccidentalRenderer";
 import { LedgerLines } from "./LedgerLines";
+import { TablatureRenderer } from "./TablatureRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -18,6 +19,8 @@ interface NoteRendererProps {
   isChord?: boolean;
   isFirstInChord?: boolean;
   chordNotes?: Array<{ note: Note; y: number }>; // All notes in the chord with their Y positions
+  activeClefSign?: ClefSign;
+  staffLines?: number;
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -29,6 +32,8 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   isChord = false,
   isFirstInChord = false,
   chordNotes = [],
+  activeClefSign,
+  staffLines,
 }) => {
   const needsFlag =
     note.type &&
@@ -43,6 +48,20 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       "1024th",
     ].includes(note.type);
   const isUpwardStem = note.stem === "up";
+
+  // Handle tablature notation
+  if (activeClefSign === "TAB") {
+    return (
+      <TablatureRenderer
+        note={note}
+        x={x}
+        partYOffset={partYOffset}
+        staff={note.staff || 1}
+        activeClefSign={activeClefSign}
+        staffLines={staffLines}
+      />
+    );
+  }
 
   if (note.rest) {
     return (

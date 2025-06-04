@@ -219,6 +219,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
         const divisions = firstMeasureAttrs?.divisions ?? 1;
         const staves = firstMeasureAttrs?.staves ?? 1;
         const initialClefs = firstMeasureAttrs?.clefs ?? [];
+        const staffDetails = firstMeasureAttrs?.staffDetails ?? [];
 
         // Initialize active clefs with initial clefs
         const globalActiveClefs: Record<number, Clef> = {};
@@ -232,6 +233,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               width={svgWidth}
               yOffset={partYOffset}
               staves={staves}
+              staffDetails={staffDetails}
             />
 
             {part.measures.map((measure, measureIndex) => {
@@ -264,7 +266,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   renderMeasureLine(
                     125 - DURATION_SPACING_UNIT / 2,
                     partYOffset,
-                    staves
+                    staves,
+                    staffDetails
                   )
                 );
               }
@@ -389,6 +392,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     // Render all notes in the chord
                     chordGroup.notes.forEach((note, noteIndex) => {
                       const noteY = chordNotesWithPositions[noteIndex].y;
+                      const staffNum = note.staff || 1;
+                      const activeClef = globalActiveClefs[staffNum];
+
+                      // Get staff details for this staff
+                      const currentStaffDetails = staffDetails.find(
+                        (detail) => (detail.staffNumber || 1) === staffNum
+                      );
 
                       const key = `${
                         note.rest ? "rest" : "note"
@@ -407,6 +417,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           isChord={chordGroup.notes.length > 1}
                           isFirstInChord={noteIndex === 0}
                           chordNotes={chordNotesWithPositions}
+                          activeClefSign={activeClef?.sign}
+                          staffLines={currentStaffDetails?.staffLines}
                         />
                       );
                     });
@@ -428,7 +440,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType -
                     DURATION_SPACING_UNIT / 2,
                   partYOffset,
-                  staves
+                  staves,
+                  staffDetails
                 )
               );
 
@@ -443,7 +456,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         DURATION_SPACING_UNIT / 2 +
                         1,
                       partYOffset,
-                      staves
+                      staves,
+                      staffDetails
                     )}
                     {renderMeasureLine(
                       measureX +
@@ -452,7 +466,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         DURATION_SPACING_UNIT / 2 -
                         3,
                       partYOffset,
-                      staves
+                      staves,
+                      staffDetails
                     )}
                   </g>
                 );
