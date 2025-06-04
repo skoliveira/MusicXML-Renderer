@@ -348,7 +348,7 @@ export interface Articulation {
   softAccent?: SoftAccent;
 }
 
-export interface Notation {
+export interface Notations {
   tied?: Tied[];
   slur?: Slur[];
   tuplet?: Tuplet[];
@@ -372,7 +372,7 @@ export interface Note {
   notehead?: NoteheadValue;
   staff?: number;
   beams?: Beams[];
-  notations?: Notation[];
+  notations?: Notations[];
   lyrics?: Lyric[];
 }
 

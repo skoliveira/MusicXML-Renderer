@@ -18,7 +18,7 @@ import {
   NumeralMode,
   Mode,
   Articulation,
-  Notation,
+  Notations,
   Note,
   Lyric,
   Harmony,
@@ -150,7 +150,7 @@ export function parseArticulation(elem: Element): Articulation {
   return result;
 }
 
-export function parseNotation(elem: Element): Notation {
+export function parseNotations(elem: Element): Notations {
   const tied = Array.from(elem.querySelectorAll("tied")).map((tie) => ({
     type: tie.getAttribute("type") as
       | "start"
@@ -223,7 +223,7 @@ export function parseNote(elem: Element): Note {
     : undefined;
   const beams = elem.querySelector("beam") ? parseBeams(elem) : undefined;
   const notations = elem.querySelector("notations")
-    ? [parseNotation(elem.querySelector("notations")!)]
+    ? [parseNotations(elem.querySelector("notations")!)]
     : undefined;
   const lyrics = Array.from(elem.querySelectorAll("lyric")).map(parseLyric);
   const dots = elem.querySelectorAll("dot")
