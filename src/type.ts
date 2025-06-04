@@ -324,6 +324,11 @@ export interface SoftAccent {
   placement?: "above" | "below";
 }
 
+export interface Technical {
+  string: number;
+  fret: number;
+}
+
 export interface Articulation {
   accent?: Accent;
   strongAccent?: StrongAccent;
@@ -347,6 +352,7 @@ export interface Notation {
   tied?: Tied[];
   slur?: Slur[];
   tuplet?: Tuplet[];
+  technical?: Technical[];
   articulations?: Articulation[];
   fermata?: FermataShape[];
   accidentalMark?: AccidentalValue[];

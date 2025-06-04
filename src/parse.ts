@@ -168,6 +168,11 @@ export function parseNotation(elem: Element): Notation {
     placement: t.getAttribute("placement") as "above" | "below" | undefined,
   }));
 
+  const technical = Array.from(elem.querySelectorAll("technical")).map((t) => ({
+    string: parseInt(t.querySelector("string")?.textContent || "1"),
+    fret: parseInt(t.querySelector("fret")?.textContent || "0"),
+  }));
+
   const articulations = Array.from(elem.querySelectorAll("articulations")).map(
     parseArticulation
   );
@@ -185,6 +190,7 @@ export function parseNotation(elem: Element): Notation {
     tied,
     slur,
     tuplet,
+    technical,
     articulations,
     fermata,
     accidentalMark,
