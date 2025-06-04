@@ -450,6 +450,19 @@ export interface Time {
   beatType: number;
 }
 
+export interface StaffTuning {
+  line: number;
+  tuningStep: Step;
+  tuningAlter?: number;
+  tuningOctave: Octave;
+}
+
+export interface StaffDetails {
+  staffNumber?: number;
+  staffLines: number;
+  staffTuning?: StaffTuning[];
+}
+
 export interface Attributes {
   divisions?: number;
   key?: Key[];
@@ -458,6 +471,7 @@ export interface Attributes {
   partSymbol?: GroupSymbolValue;
   instruments?: number;
   clefs?: Clef[];
+  staffDetails?: StaffDetails[];
 }
 
 export interface Measure {

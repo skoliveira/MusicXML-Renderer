@@ -382,6 +382,32 @@ export function parseAttributes(elem: Element): Attributes {
       : undefined,
   }));
 
+  const staffDetails = Array.from(elem.querySelectorAll("staff-details")).map(
+    (staffDetailsElem) => ({
+      staffNumber: staffDetailsElem.getAttribute("number")
+        ? parseInt(staffDetailsElem.getAttribute("number") || "1")
+        : undefined,
+      staffLines: parseInt(
+        staffDetailsElem.querySelector("staff-lines")!.textContent || "0"
+      ),
+      staffTuning: Array.from(
+        staffDetailsElem.querySelectorAll("staff-tuning")
+      ).map((staffTuningElem) => ({
+        line: parseInt(staffTuningElem.getAttribute("line") || "0"),
+        tuningStep: staffTuningElem.querySelector("tuning-step")
+          ?.textContent as Step,
+        tuningAlter: staffTuningElem.querySelector("tuning-alter")
+          ? parseInt(
+              staffTuningElem.querySelector("tuning-alter")?.textContent || "0"
+            )
+          : undefined,
+        tuningOctave: parseInt(
+          staffTuningElem.querySelector("tuning-octave")?.textContent || "0"
+        ) as Octave,
+      })),
+    })
+  );
+
   return {
     divisions,
     key: keys,
@@ -390,6 +416,7 @@ export function parseAttributes(elem: Element): Attributes {
     partSymbol,
     instruments,
     clefs,
+    staffDetails,
   };
 }
 
