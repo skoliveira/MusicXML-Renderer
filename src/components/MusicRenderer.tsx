@@ -163,12 +163,20 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
   // Calculate total width needed for all parts
   const maxWidth = Math.max(
     ...score.parts.map((part) => {
+      // Get part-specific attributes from first measure
+      const firstMeasureAttrs = part.measures[0]?.elements.find(
+        (e) => e.attributes
+      )?.attributes;
+      const divisions = firstMeasureAttrs?.divisions ?? 1;
+      let beats = firstMeasureAttrs?.time?.find((t) => t.beats)?.beats ?? 4;
+      let beatType =
+        firstMeasureAttrs?.time?.find((t) => t.beatType)?.beatType ?? 4;
+
       const totalWidth = part.measures.reduce((sum, measure) => {
         const attrs = measure.elements.find((e) => e.attributes)?.attributes;
 
-        const divisions = attrs?.divisions ?? 1;
-        const beats = attrs?.time?.find((t) => t.beats)?.beats ?? 4;
-        const beatType = attrs?.time?.find((t) => t.beatType)?.beatType ?? 4;
+        beats = attrs?.time?.find((t) => t.beats)?.beats ?? beats;
+        beatType = attrs?.time?.find((t) => t.beatType)?.beatType ?? beatType;
 
         const measureWidth =
           (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType;
