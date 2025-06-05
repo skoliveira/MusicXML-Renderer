@@ -20,7 +20,6 @@ interface NoteRendererProps {
   isFirstInChord?: boolean;
   chordNotes?: Array<{ note: Note; y: number }>; // All notes in the chord with their Y positions
   activeClefSign?: ClefSign;
-  staffLines?: number;
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -33,11 +32,26 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   isFirstInChord = false,
   chordNotes = [],
   activeClefSign,
-  staffLines,
 }) => {
   const needsFlag =
     note.type &&
     [
+      "eighth",
+      "16th",
+      "32nd",
+      "64th",
+      "128th",
+      "256th",
+      "512th",
+      "1024th",
+    ].includes(note.type);
+  const needsStem =
+    note.type &&
+    [
+      "maxima",
+      "long",
+      "half",
+      "quarter",
       "eighth",
       "16th",
       "32nd",
@@ -58,7 +72,6 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         partYOffset={partYOffset}
         staff={note.staff || 1}
         activeClefSign={activeClefSign}
-        staffLines={staffLines}
       />
     );
   }
@@ -81,7 +94,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   let stemStartY = y;
   let stemEndY = y;
 
-  if (isChord && chordNotes.length > 1 && isFirstInChord) {
+  if (needsStem && isChord && chordNotes.length > 1 && isFirstInChord) {
     // Find the highest and lowest notes in the chord
     const yPositions = chordNotes.map((cn) => cn.y);
     const highestY = Math.min(...yPositions); // Lowest Y value (highest on staff)
@@ -119,7 +132,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       {/* Only render stem and flag for single notes or first note in chord */}
       {(!isChord || isFirstInChord) && (
         <>
-          {isChord && chordNotes.length > 1 ? (
+          {needsStem && isChord && chordNotes.length > 1 ? (
             // Custom stem for chords
             <line
               x1={x + (isUpwardStem ? 5 : -5)}
