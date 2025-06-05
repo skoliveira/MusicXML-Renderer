@@ -93,6 +93,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   // Calculate chord stem positions if this is a chord
   let stemStartY = y;
   let stemEndY = y;
+  let stemLength = y;
 
   if (needsStem && isChord && chordNotes.length > 1 && isFirstInChord) {
     // Find the highest and lowest notes in the chord
@@ -109,6 +110,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       stemStartY = highestY;
       stemEndY = lowestY + 35; // Standard stem length below the notehead
     }
+    stemLength = lowestY - highestY + 35;
   }
 
   return (
@@ -134,13 +136,13 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         <>
           {needsStem && isChord && chordNotes.length > 1 ? (
             // Custom stem for chords
-            <line
-              x1={x + (isUpwardStem ? 5 : -5)}
-              y1={stemStartY}
-              x2={x + (isUpwardStem ? 5 : -5)}
-              y2={stemEndY}
-              stroke="black"
-              strokeWidth="1"
+            <StemRenderer
+              notehead={note.notehead}
+              stem={note.stem}
+              x={x}
+              y={stemStartY}
+              elementKey={elementKey}
+              stemLength={stemLength}
             />
           ) : (
             // Standard stem for single notes
