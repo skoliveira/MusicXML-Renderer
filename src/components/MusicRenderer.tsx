@@ -118,8 +118,12 @@ const pitchToY = (
   return baseY + staffOffset + clefOffset + partYOffset;
 };
 
+interface MeasureElement {
+  note?: Note;
+}
+
 // Function to group notes into chords
-const groupNotesIntoChords = (elements: any[]): ChordGroup[] => {
+const groupNotesIntoChords = (elements: MeasureElement[]): ChordGroup[] => {
   const chordGroups: ChordGroup[] = [];
   let currentChord: ChordGroup | null = null;
 
@@ -395,11 +399,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       const staffNum = note.staff || 1;
                       const activeClef = globalActiveClefs[staffNum];
 
-                      // Get staff details for this staff
-                      const currentStaffDetails = staffDetails.find(
-                        (detail) => (detail.staffNumber || 1) === staffNum
-                      );
-
                       const key = `${
                         note.rest ? "rest" : "note"
                       }-${partIndex}-${measureIndex}-${
@@ -418,7 +417,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           isFirstInChord={noteIndex === 0}
                           chordNotes={chordNotesWithPositions}
                           activeClefSign={activeClef?.sign}
-                          staffLines={currentStaffDetails?.staffLines}
                         />
                       );
                     });
