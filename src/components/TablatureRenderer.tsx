@@ -1,6 +1,6 @@
 // components/TablatureRenderer.tsx
 import React from "react";
-import { Note, Technical, ClefSign } from "../type";
+import { Note, ClefSign } from "../type";
 import { STAFF_LINE_SPACING } from "./StavesRenderer";
 
 interface TablatureRendererProps {
@@ -9,7 +9,6 @@ interface TablatureRendererProps {
   partYOffset: number;
   staff: number;
   activeClefSign?: ClefSign;
-  staffLines?: number;
 }
 
 export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
@@ -18,7 +17,6 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   partYOffset,
   staff,
   activeClefSign,
-  staffLines = 6,
 }) => {
   // Only render tablature for TAB clef
   if (activeClefSign !== "TAB") {
@@ -50,12 +48,12 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   return (
     <g>
       {/* Render fret number */}
-      {<circle cx={x} cy={stringY} r="4" fill={`#E0E0E0`} stroke="none" />} */
+      {<circle cx={x} cy={stringY} r="5" fill={`#E0E0E0`} stroke="none" />} */
       <text
         x={x}
         y={stringY + 4} // Slight vertical adjustment to center on line
         textAnchor="middle"
-        fontSize="12"
+        fontSize="14"
         fontFamily="Arial, sans-serif"
         fill="black"
       >
