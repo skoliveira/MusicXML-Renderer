@@ -4,6 +4,7 @@ import { Note, ClefSign } from "../type";
 import { STAFF_LINE_SPACING } from "./StavesRenderer";
 import { RestRenderer } from "./RestRenderer";
 import { DotsRenderer } from "./DotsRenderer";
+import { Flag } from "./Flag";
 
 interface TablatureRendererProps {
   note: Note;
@@ -61,6 +62,42 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   const stringLineIndex = stringNum - 1; // Convert 1-based string number to 0-based index
   const stringY = staffYOffset + stringLineIndex * STAFF_LINE_SPACING;
 
+  // Calculate stem properties
+  const needsStem =
+    note.type &&
+    [
+      "maxima",
+      "long",
+      "half",
+      "quarter",
+      "eighth",
+      "16th",
+      "32nd",
+      "64th",
+      "128th",
+      "256th",
+      "512th",
+      "1024th",
+    ].includes(note.type);
+
+  const needsFlag =
+    note.type &&
+    [
+      "eighth",
+      "16th",
+      "32nd",
+      "64th",
+      "128th",
+      "256th",
+      "512th",
+      "1024th",
+    ].includes(note.type);
+
+  const stemLength = 30; // Default stem length
+  const stemX = x; // Slightly offset from the note center
+  const lowestStringY = staffYOffset + 5 * STAFF_LINE_SPACING; // Y position of the lowest string
+  const stemStartY = lowestStringY + 10; // Start stem slightly below the lowest string
+
   return (
     <g>
       <circle cx={x} cy={stringY} r="5" fill={`#E0E0E0`} stroke="none" />
@@ -74,6 +111,28 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
       >
         {fret}
       </text>
+      {needsStem && (
+        <>
+          <line
+            x1={stemX}
+            y1={stemStartY + (note.type === "half" ? stemLength / 2 : 0)}
+            x2={stemX}
+            y2={stemStartY + stemLength}
+            stroke="black"
+            strokeWidth="1"
+          />
+          {needsFlag && note.type && (
+            <g
+              transform={`scale(1, -1) translate(0, ${
+                -2 * (stemStartY + stemLength)
+              })`}
+            >
+              <Flag type={note.type} x={stemX} y={stemStartY + stemLength} />
+            </g>
+          )}
+        </>
+      )}
+      {note.dots && <DotsRenderer x={x} y={stringY} dots={note.dots} />}
     </g>
   );
 };
