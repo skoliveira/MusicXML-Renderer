@@ -26,7 +26,7 @@ export const StemRenderer: React.FC<StemRendererProps> = ({
   ) => {
     const x1 = x + offsetX;
     const y1 = startY;
-    const y2 = direction === "up" ? startY - stemLength : startY + stemLength;
+    const y2 = direction === "up" ? y - stemLength : y + stemLength;
 
     return (
       <line
