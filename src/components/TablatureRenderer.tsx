@@ -2,6 +2,8 @@
 import React from "react";
 import { Note, ClefSign } from "../type";
 import { STAFF_LINE_SPACING } from "./StavesRenderer";
+import { RestRenderer } from "./RestRenderer";
+import { DotsRenderer } from "./DotsRenderer";
 
 interface TablatureRendererProps {
   note: Note;
@@ -23,6 +25,25 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
     return null;
   }
 
+  // Calculate base Y position for the staff
+  const staffYOffset = partYOffset + (staff - 1) * 120; // STAFF_SPACING
+  const middleLineY = staffYOffset + 3 * STAFF_LINE_SPACING; // Center of the tab staff
+
+  // Handle rests
+  if (note.rest) {
+    return (
+      <>
+        <RestRenderer
+          type={note.type}
+          measure={note.rest.measure}
+          x={x}
+          y={middleLineY}
+        />
+        {note.dots && <DotsRenderer x={x} y={middleLineY} dots={note.dots} />}
+      </>
+    );
+  }
+
   // Get technical notation (string and fret info)
   const technical = note.notations?.find(
     (notation) => notation.technical && notation.technical.length > 0
@@ -34,11 +55,6 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
 
   const { string: stringNum, fret } = technical;
 
-  // Calculate Y position based on string number and actual staff lines
-  // In tablature, string 1 is typically the highest pitched string (should appear on bottom line)
-  // String numbers increase going toward lower pitched strings (higher Y values in SVG)
-  const staffYOffset = partYOffset + (staff - 1) * 120; // STAFF_SPACING
-
   // Position the fret number on the correct string line
   // String 1 should be on the bottom line (highest Y value)
   // String N should be on the top line (lowest Y value)
@@ -47,8 +63,7 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
 
   return (
     <g>
-      {/* Render fret number */}
-      {<circle cx={x} cy={stringY} r="5" fill={`#E0E0E0`} stroke="none" />} */
+      <circle cx={x} cy={stringY} r="5" fill={`#E0E0E0`} stroke="none" />
       <text
         x={x}
         y={stringY + 4} // Slight vertical adjustment to center on line
