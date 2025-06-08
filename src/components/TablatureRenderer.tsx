@@ -132,7 +132,9 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
           )}
         </>
       )}
-      {note.dots && <DotsRenderer x={x} y={stringY} dots={note.dots} />}
+      {note.dots && (
+        <DotsRenderer x={stemX - 7} y={stemStartY + 10} dots={note.dots} />
+      )}
     </g>
   );
 };
