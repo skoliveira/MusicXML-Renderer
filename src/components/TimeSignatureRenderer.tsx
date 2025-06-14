@@ -45,7 +45,7 @@ export const TimeSignatureRenderer: React.FC<Props> = ({
         y={yOffset - 10}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="36"
+        fontSize="30"
         fontFamily="Bravura"
       >
         {beatsGlyphs}
@@ -56,7 +56,7 @@ export const TimeSignatureRenderer: React.FC<Props> = ({
         y={yOffset + 10}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize="36"
+        fontSize="30"
         fontFamily="Bravura"
       >
         {beatTypeGlyphs}

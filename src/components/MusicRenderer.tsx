@@ -342,8 +342,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           key={`time-${partIndex}-${measureIndex}-${elementIndex}-${timeIndex}-${staff}`}
                           beats={time.beats}
                           beatType={time.beatType}
-                          x={currentX - 45}
-                          yOffset={staffYOffset - 35}
+                          x={currentX - 30}
+                          yOffset={staffYOffset - 80}
                         />
                       );
                     }
