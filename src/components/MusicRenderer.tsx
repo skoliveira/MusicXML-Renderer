@@ -239,6 +239,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
           globalActiveClefs[clef.staffNumber || 1] = clef;
         });
 
+        let totalWidth = 125; // Starting X position
+
         return (
           <g key={`part-${partIndex}`}>
             <StavesRenderer
@@ -259,10 +261,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   ?.attributes?.time?.find((t) => t.beatType)?.beatType ??
                 beatType;
 
-              const measureX =
-                (4 * measureIndex * beats * DURATION_SPACING_UNIT * divisions) /
-                  beatType +
-                125;
+              const measureWidth =
+                (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType;
+              const measureX = totalWidth;
               let currentX = measureX;
               let spacing = 0;
 
@@ -362,7 +363,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     <ChordSymbolRenderer
                       key={`harmony-${partIndex}-${measureIndex}-${elementIndex}`}
                       harmony={element.harmony}
-                      x={currentX}
+                      x={currentX + spacing}
                       y={partYOffset - 20} // Position above the staff
                       xOffset={chordOffset}
                     />
@@ -478,6 +479,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   </g>
                 );
               }
+
+              totalWidth += measureWidth;
 
               return (
                 <g key={`measure-${partIndex}-${measureIndex}`}>{elements}</g>
