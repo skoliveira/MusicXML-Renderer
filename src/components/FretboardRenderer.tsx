@@ -37,15 +37,46 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
     const specifiedStrings = new Set(frameNote.map((note) => note.string));
     const allNotes = [...frameNote];
 
-    // Add muted entries for any unspecified strings
+    // Detect barre region (fret + start/stop)
+    const barreStart = frameNote.find((note) => note.barre === "start");
+    const barreStop = frameNote.find(
+      (note) => note.barre === "stop" && note.fret === barreStart?.fret
+    );
+
+    const hasBarre = barreStart && barreStop;
+    const barreFret = barreStart?.fret;
+    const barreStartString = Math.min(
+      barreStart?.string ?? Infinity,
+      barreStop?.string ?? Infinity
+    );
+    const barreEndString = Math.max(
+      barreStart?.string ?? -Infinity,
+      barreStop?.string ?? -Infinity
+    );
+
     for (let stringNum = 1; stringNum <= frameStrings; stringNum++) {
       if (!specifiedStrings.has(stringNum)) {
-        allNotes.push({
-          string: stringNum,
-          fret: -1, // Negative fret indicates muted
-          fingering: undefined,
-          barre: undefined,
-        });
+        // If there is a barre and the string is within the range of the barre
+        if (
+          hasBarre &&
+          stringNum >= barreStartString &&
+          stringNum <= barreEndString
+        ) {
+          allNotes.push({
+            string: stringNum,
+            fret: barreFret!,
+            fingering: undefined,
+            barre: undefined,
+          });
+        } else {
+          // Otherwise, treat it as a muted string
+          allNotes.push({
+            string: stringNum,
+            fret: -1,
+            fingering: undefined,
+            barre: undefined,
+          });
+        }
       }
     }
 
