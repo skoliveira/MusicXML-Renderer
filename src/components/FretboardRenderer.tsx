@@ -15,6 +15,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
   const stringSpacing = 6;
   const fretSpacing = 6;
   const nutHeight = 2;
+  const nutOffset = nutHeight / 2; // Offset for the nut to not consume first fret space
   const dotRadius = 2;
   const barreHeight = 4;
 
@@ -85,6 +86,19 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
 
   return (
     <g className="fretboard-diagram">
+      {/* Nut (when firstFret is 0) */}
+      {firstFret === 0 && (
+        <line
+          x1={x}
+          y1={y - nutOffset}
+          x2={x + diagramWidth}
+          y2={y - nutOffset}
+          stroke="black"
+          strokeWidth={nutHeight}
+          strokeLinecap="square"
+        />
+      )}
+
       {/* Fret lines */}
       {Array.from({ length: frameFrets + 1 }, (_, i) => (
         <line
@@ -94,7 +108,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
           x2={x + diagramWidth}
           y2={getFretY(i)}
           stroke="black"
-          strokeWidth={i === 0 && firstFret === 0 ? nutHeight : 0.5}
+          strokeWidth={0.5}
         />
       ))}
 
