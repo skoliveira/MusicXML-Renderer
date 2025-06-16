@@ -9,6 +9,7 @@ import { Flag } from "./Flag";
 import { AccidentalRenderer } from "./AccidentalRenderer";
 import { LedgerLines } from "./LedgerLines";
 import { TablatureRenderer } from "./TablatureRenderer";
+import { TieRenderer } from "./TieRenderer";
 
 interface NoteRendererProps {
   note: Note;
@@ -20,6 +21,8 @@ interface NoteRendererProps {
   isFirstInChord?: boolean;
   chordNotes?: Array<{ note: Note; y: number }>; // All notes in the chord with their Y positions
   activeClefSign?: ClefSign;
+  tieEnd?: { x: number; y: number }; // Add position for end of tie if this note is tied to a previous note
+  tieToNext?: { x: number; y: number }; // Add position for end of tie if this note is tied to the next note
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -32,6 +35,8 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   isFirstInChord = false,
   chordNotes = [],
   activeClefSign,
+  tieEnd,
+  tieToNext,
 }) => {
   const needsFlag =
     note.type &&
@@ -172,6 +177,28 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         </>
       )}
       {note.dots && <DotsRenderer x={x} y={y} dots={note.dots} />}
+
+      {/* Render ties */}
+      {tieEnd && (
+        <TieRenderer
+          startX={tieEnd.x + 6}
+          startY={tieEnd.y + 6 * (isUpwardStem ? 1 : -1)}
+          endX={x - 6}
+          endY={y + 6 * (isUpwardStem ? 1 : -1)}
+          curveHeight={20 * note.duration * (isUpwardStem ? 1 : -1)}
+          thickness={7}
+        />
+      )}
+      {tieToNext && (
+        <TieRenderer
+          startX={x + 6}
+          startY={y + 6 * (isUpwardStem ? 1 : -1)}
+          endX={tieToNext.x - 6}
+          endY={tieToNext.y + 6 * (isUpwardStem ? 1 : -1)}
+          curveHeight={20 * note.duration * (isUpwardStem ? 1 : -1)}
+          thickness={7}
+        />
+      )}
     </>
   );
 };

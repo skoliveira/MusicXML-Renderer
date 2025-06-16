@@ -209,12 +209,12 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
   // Compute total height dynamically based on number of parts and their staves
   const lastPartIndex = score.parts.length - 1;
-  const lastPartYOffset = getPartYOffset(lastPartIndex);
   const lastPartAttrs = score.parts[lastPartIndex].measures[0]?.elements.find(
     (e) => e.attributes
   )?.attributes;
   const lastPartStaves = lastPartAttrs?.staves ?? 1;
-  const svgHeight = lastPartYOffset + lastPartStaves * STAFF_SPACING + 60;
+  const svgHeight =
+    getPartYOffset(lastPartIndex) + lastPartStaves * STAFF_SPACING + 60;
 
   return (
     <svg width={svgWidth} height={svgHeight}>
@@ -240,6 +240,12 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
         });
 
         let totalWidth = 125; // Starting X position
+
+        // Track tied notes for each pitch and staff
+        const tiedNotes = new Map<
+          string,
+          { note: Note; x: number; y: number }
+        >();
 
         return (
           <g key={`part-${partIndex}`}>
@@ -408,6 +414,34 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       const staffNum = note.staff || 1;
                       const activeClef = globalActiveClefs[staffNum];
 
+                      // Handle ties
+                      const hasTieStart = note.notations?.some((notation) =>
+                        notation.tied?.some((t) => t.type === "start")
+                      );
+                      const hasTieStop = note.notations?.some((notation) =>
+                        notation.tied?.some((t) => t.type === "stop")
+                      );
+
+                      // Create a unique key for this note's pitch and staff
+                      const noteKey = `${note.pitch?.step}${note.pitch?.octave}-${staffNum}`;
+
+                      // Get the tied note info if this note has a tie stop
+                      const tieEnd = hasTieStop
+                        ? tiedNotes.get(noteKey)
+                        : undefined;
+
+                      // Store this note's info if it has a tie start
+                      if (hasTieStart) {
+                        tiedNotes.set(noteKey, {
+                          note,
+                          x: currentX,
+                          y: noteY,
+                        });
+                      } else {
+                        // Clear the tied note info if this note doesn't continue the tie
+                        tiedNotes.delete(noteKey);
+                      }
+
                       const key = `${
                         note.rest ? "rest" : "note"
                       }-${partIndex}-${measureIndex}-${
@@ -426,13 +460,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           isFirstInChord={noteIndex === 0}
                           chordNotes={chordNotesWithPositions}
                           activeClefSign={activeClef?.sign}
+                          tieEnd={tieEnd}
                         />
                       );
                     });
 
                     chordGroupIndex++;
                   }
-                  // If it's not the first note in a chord, it's already been rendered
                 }
 
                 if (element.backup) {
