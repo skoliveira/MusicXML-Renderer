@@ -135,6 +135,28 @@ const pitchToY = (
   return baseY + staffOffset + clefOffset + partYOffset;
 };
 
+// Helper function to get tablature Y position for a note
+const getTablatureY = (note: Note, partYOffset: number): number => {
+  const staffYOffset = partYOffset + ((note.staff || 1) - 1) * 120; // STAFF_SPACING
+
+  // Get technical notation (string and fret info)
+  const technical = note.notations?.find(
+    (notation) => notation.technical && notation.technical.length > 0
+  )?.technical?.[0];
+
+  if (!technical) {
+    return staffYOffset + 3 * STAFF_LINE_SPACING; // Default to middle line
+  }
+
+  const { string: stringNum } = technical;
+
+  // Position the fret number on the correct string line
+  // String 1 should be on the bottom line (highest Y value)
+  // String N should be on the top line (lowest Y value)
+  const stringLineIndex = stringNum - 1; // Convert 1-based string number to 0-based index
+  return staffYOffset + stringLineIndex * STAFF_LINE_SPACING;
+};
+
 interface MeasureElement {
   note?: Note;
 }
@@ -281,12 +303,26 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 notation.slur.forEach((slur) => {
                   const slurNumber = slur.number || 1;
                   const slurKey = `${staffNum}-${slurNumber}`;
+                  const activeClef = globalActiveClefs[staffNum];
+                  const isTabStaff = activeClef?.sign === "TAB";
+
+                  let slurY = noteY;
+                  let yOffset = 6;
+
+                  if (isTabStaff) {
+                    // For tablature, use the fret position and adjust offset
+                    slurY = getTablatureY(note, partYOffset);
+                    yOffset = note.stem === "up" ? -8 : 8; // Adjust for tablature spacing
+                  } else {
+                    // For standard notation, use existing logic
+                    yOffset = 6 * (note.stem === "up" ? 1 : -1);
+                  }
 
                   if (slur.type === "start") {
                     // Start a new slur
                     activeSlurs.set(slurKey, {
                       startX: currentX + 6,
-                      startY: noteY + 6 * (note.stem === "up" ? 1 : -1),
+                      startY: slurY + yOffset * (note.stem === "up" ? 1 : -1),
                       placement: slur.placement,
                       staff: staffNum,
                     });
@@ -298,7 +334,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         startX: startSlur.startX,
                         startY: startSlur.startY,
                         endX: currentX - 6,
-                        endY: noteY + 6 * (note.stem === "up" ? 1 : -1),
+                        endY: slurY + yOffset * (note.stem === "up" ? 1 : -1),
                         placement:
                           startSlur.placement ||
                           (note.stem === "up" ? "below" : "above"),
@@ -462,15 +498,25 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     const chordNotesWithPositions: ChordNoteWithPosition[] =
                       chordGroup.notes.map((note) => {
                         const staffNum = note.staff || 1;
-                        const noteY = note.rest
-                          ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
-                          : pitchToY(
-                              note.pitch,
-                              staffNum,
-                              globalActiveClefs[staffNum],
-                              partYOffset,
-                              note.unpitched
-                            );
+                        const activeClef = globalActiveClefs[staffNum];
+
+                        let noteY: number;
+                        if (activeClef?.sign === "TAB") {
+                          // Use tablature positioning
+                          noteY = getTablatureY(note, partYOffset);
+                        } else {
+                          // Use standard notation positioning
+                          noteY = note.rest
+                            ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
+                            : pitchToY(
+                                note.pitch,
+                                staffNum,
+                                activeClef,
+                                partYOffset,
+                                note.unpitched
+                              );
+                        }
+
                         return { note, y: noteY };
                       });
 
