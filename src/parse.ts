@@ -161,6 +161,8 @@ export function parseNotations(elem: Element): Notations {
 
   const slur = Array.from(elem.querySelectorAll("slur")).map((s) => ({
     type: s.getAttribute("type") as "start" | "stop" | "continue",
+    number: s.getAttribute("number") ? parseInt(s.getAttribute("number")!) : 1,
+    placement: s.getAttribute("placement") as "above" | "below" | undefined,
   }));
 
   const tuplet = Array.from(elem.querySelectorAll("tuplet")).map((t) => ({

@@ -250,6 +250,8 @@ export interface Tied {
 
 export interface Slur {
   type: "start" | "stop" | "continue";
+  number?: number;
+  placement?: "above" | "below";
 }
 
 export interface Tuplet {
