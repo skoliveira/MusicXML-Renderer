@@ -285,7 +285,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   if (slur.type === "start") {
                     // Start a new slur
                     activeSlurs.set(slurKey, {
-                      startX: currentX + 6 * (note.stem === "up" ? 1 : -1),
+                      startX: currentX + 6,
                       startY: noteY + 6 * (note.stem === "up" ? 1 : -1),
                       placement: slur.placement,
                       staff: staffNum,
@@ -297,9 +297,11 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       completedSlurs.push({
                         startX: startSlur.startX,
                         startY: startSlur.startY,
-                        endX: currentX - 6 * (note.stem === "up" ? 1 : -1),
+                        endX: currentX - 6,
                         endY: noteY + 6 * (note.stem === "up" ? 1 : -1),
-                        placement: startSlur.placement,
+                        placement:
+                          startSlur.placement ||
+                          (note.stem === "up" ? "below" : "above"),
                         staff: staffNum,
                       });
                       activeSlurs.delete(slurKey);

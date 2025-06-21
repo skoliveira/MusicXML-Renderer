@@ -21,7 +21,7 @@ export const SlurRenderer: React.FC<SlurRendererProps> = ({
 }) => {
   // Control point for the curve
   const cx = (startX + endX) / 2;
-  const cy = (startY + endY) / 2 + curvature;
+  const cy = (startY + endY) / 2 + curvature * (placement === "below" ? 1 : -1);
 
   const halfThickness = thickness / 2;
   const topControlY = cy - halfThickness;
