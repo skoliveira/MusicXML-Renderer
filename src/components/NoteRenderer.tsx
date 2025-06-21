@@ -23,6 +23,13 @@ interface NoteRendererProps {
   activeClefSign?: ClefSign;
   tieEnd?: { x: number; y: number; duration: number }; // Add duration for tie start note
   tieToNext?: { x: number; y: number; duration: number }; // Add duration for tie start note
+  onSlurEvent?: (
+    type: "start" | "stop",
+    x: number,
+    y: number,
+    slurNumber?: number,
+    placement?: "above" | "below"
+  ) => void;
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -37,6 +44,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   activeClefSign,
   tieEnd,
   tieToNext,
+  onSlurEvent,
 }) => {
   const needsFlag =
     note.type &&
@@ -67,6 +75,21 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       "1024th",
     ].includes(note.type);
   const isUpwardStem = note.stem === "up";
+
+  // Add this effect to handle slur events
+  React.useEffect(() => {
+    if (note.notations && onSlurEvent) {
+      note.notations.forEach((notation) => {
+        if (notation.slur) {
+          notation.slur.forEach((slur) => {
+            if (slur.type === "start" || slur.type === "stop") {
+              onSlurEvent(slur.type, x, y, slur.number, slur.placement);
+            }
+          });
+        }
+      });
+    }
+  }, [note.notations, onSlurEvent, x, y]);
 
   // Handle tablature notation
   if (activeClefSign === "TAB") {

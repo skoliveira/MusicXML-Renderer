@@ -3,6 +3,7 @@ import React from "react";
 import { Pitch, ScorePartwise, Clef, ClefSign, Unpitched, Note } from "../type";
 import { NoteRenderer } from "./NoteRenderer";
 import { ChordSymbolRenderer } from "./ChordSymbolRenderer";
+import { SlurRenderer } from "./SlurRenderer";
 import {
   StavesRenderer,
   renderMeasureLine,
@@ -27,6 +28,22 @@ interface ChordGroup {
 interface ChordNoteWithPosition {
   note: Note;
   y: number;
+}
+
+interface SlurInfo {
+  startX: number;
+  startY: number;
+  placement?: "above" | "below";
+  staff: number;
+}
+
+interface CompletedSlur {
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  placement?: "above" | "below";
+  staff: number;
 }
 
 const DURATION_SPACING_UNIT = 40; // Pixels per duration unit
@@ -247,6 +264,53 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
           { note: Note; x: number; y: number; duration: number }
         >();
 
+        // Track slurs - using staff + slur number as key
+        const activeSlurs = new Map<string, SlurInfo>();
+        const completedSlurs: CompletedSlur[] = [];
+
+        // Helper function to handle slur events
+        const handleSlurs = (
+          note: Note,
+          currentX: number,
+          noteY: number,
+          staffNum: number
+        ) => {
+          if (note.notations) {
+            note.notations.forEach((notation) => {
+              if (notation.slur) {
+                notation.slur.forEach((slur) => {
+                  const slurNumber = slur.number || 1;
+                  const slurKey = `${staffNum}-${slurNumber}`;
+
+                  if (slur.type === "start") {
+                    // Start a new slur
+                    activeSlurs.set(slurKey, {
+                      startX: currentX + 6 * (note.stem === "up" ? 1 : -1),
+                      startY: noteY + 6 * (note.stem === "up" ? 1 : -1),
+                      placement: slur.placement,
+                      staff: staffNum,
+                    });
+                  } else if (slur.type === "stop") {
+                    // End an existing slur
+                    const startSlur = activeSlurs.get(slurKey);
+                    if (startSlur) {
+                      completedSlurs.push({
+                        startX: startSlur.startX,
+                        startY: startSlur.startY,
+                        endX: currentX - 6 * (note.stem === "up" ? 1 : -1),
+                        endY: noteY + 6 * (note.stem === "up" ? 1 : -1),
+                        placement: startSlur.placement,
+                        staff: staffNum,
+                      });
+                      activeSlurs.delete(slurKey);
+                    }
+                  }
+                });
+              }
+            });
+          }
+        };
+
         return (
           <g key={`part-${partIndex}`}>
             <StavesRenderer
@@ -414,6 +478,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       const staffNum = note.staff || 1;
                       const activeClef = globalActiveClefs[staffNum];
 
+                      // Handle slurs
+                      handleSlurs(note, currentX, noteY, staffNum);
+
                       // Handle ties
                       const hasTieStart = note.notations?.some((notation) =>
                         notation.tied?.some((t) => t.type === "start")
@@ -521,6 +588,18 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 <g key={`measure-${partIndex}-${measureIndex}`}>{elements}</g>
               );
             })}
+
+            {/* Render all completed slurs for this part */}
+            {completedSlurs.map((slur, slurIndex) => (
+              <SlurRenderer
+                key={`slur-${partIndex}-${slurIndex}`}
+                startX={slur.startX}
+                startY={slur.startY}
+                endX={slur.endX}
+                endY={slur.endY}
+                placement={slur.placement}
+              />
+            ))}
           </g>
         );
       })}
