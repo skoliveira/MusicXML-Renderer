@@ -5,6 +5,7 @@ import { STAFF_LINE_SPACING } from "./StavesRenderer";
 import { RestRenderer } from "./RestRenderer";
 import { DotsRenderer } from "./DotsRenderer";
 import { Flag } from "./Flag";
+import { TieRenderer } from "./TieRenderer";
 
 interface TablatureRendererProps {
   note: Note;
@@ -12,6 +13,8 @@ interface TablatureRendererProps {
   partYOffset: number;
   staff: number;
   activeClefSign?: ClefSign;
+  tieEnd?: { x: number; y: number; duration: number };
+  tieToNext?: { x: number; y: number; duration: number };
 }
 
 export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
@@ -20,6 +23,8 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   partYOffset,
   staff,
   activeClefSign,
+  tieEnd,
+  tieToNext,
 }) => {
   // Only render tablature for TAB clef
   if (activeClefSign !== "TAB") {
@@ -98,6 +103,9 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   const lowestStringY = staffYOffset + 5 * STAFF_LINE_SPACING; // Y position of the lowest string
   const stemStartY = lowestStringY + 10; // Start stem slightly below the lowest string
 
+  // Calculate tie positions - ties should be at the string level
+  const tieYOffset = 8; // Offset from the string line for tie positioning
+
   return (
     <g>
       <circle cx={x} cy={stringY} r="5" fill={`#E0E0E0`} stroke="none" />
@@ -134,6 +142,28 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
       )}
       {note.dots && (
         <DotsRenderer x={stemX - 7} y={stemStartY + 10} dots={note.dots} />
+      )}
+
+      {/* Render ties at the string level for tablature */}
+      {tieEnd && (
+        <TieRenderer
+          startX={tieEnd.x + 6}
+          startY={tieEnd.y - tieYOffset}
+          endX={x - 6}
+          endY={stringY - tieYOffset}
+          curveHeight={-6 * tieEnd.duration}
+          thickness={7}
+        />
+      )}
+      {tieToNext && (
+        <TieRenderer
+          startX={x + 6}
+          startY={stringY - tieYOffset}
+          endX={tieToNext.x - 6}
+          endY={tieToNext.y - tieYOffset}
+          curveHeight={-6 * note.duration}
+          thickness={7}
+        />
       )}
     </g>
   );

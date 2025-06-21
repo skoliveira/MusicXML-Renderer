@@ -100,6 +100,8 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         partYOffset={partYOffset}
         staff={note.staff || 1}
         activeClefSign={activeClefSign}
+        tieEnd={tieEnd}
+        tieToNext={tieToNext}
       />
     );
   }
