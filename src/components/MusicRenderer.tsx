@@ -244,7 +244,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
         // Track tied notes for each pitch and staff
         const tiedNotes = new Map<
           string,
-          { note: Note; x: number; y: number }
+          { note: Note; x: number; y: number; duration: number }
         >();
 
         return (
@@ -436,6 +436,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           note,
                           x: currentX,
                           y: noteY,
+                          duration: note.duration, // Store the duration of the starting note
                         });
                       } else {
                         // Clear the tied note info if this note doesn't continue the tie

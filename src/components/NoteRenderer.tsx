@@ -21,8 +21,8 @@ interface NoteRendererProps {
   isFirstInChord?: boolean;
   chordNotes?: Array<{ note: Note; y: number }>; // All notes in the chord with their Y positions
   activeClefSign?: ClefSign;
-  tieEnd?: { x: number; y: number }; // Add position for end of tie if this note is tied to a previous note
-  tieToNext?: { x: number; y: number }; // Add position for end of tie if this note is tied to the next note
+  tieEnd?: { x: number; y: number; duration: number }; // Add duration for tie start note
+  tieToNext?: { x: number; y: number; duration: number }; // Add duration for tie start note
 }
 
 export const NoteRenderer: React.FC<NoteRendererProps> = ({
@@ -178,14 +178,14 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       )}
       {note.dots && <DotsRenderer x={x} y={y} dots={note.dots} />}
 
-      {/* Render ties */}
+      {/* Render ties - now using the initial note's duration for curve height */}
       {tieEnd && (
         <TieRenderer
           startX={tieEnd.x + 6}
           startY={tieEnd.y + 6 * (isUpwardStem ? 1 : -1)}
           endX={x - 6}
           endY={y + 6 * (isUpwardStem ? 1 : -1)}
-          curveHeight={20 * note.duration * (isUpwardStem ? 1 : -1)}
+          curveHeight={6 * tieEnd.duration * (isUpwardStem ? 1 : -1)}
           thickness={7}
         />
       )}
@@ -195,7 +195,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
           startY={y + 6 * (isUpwardStem ? 1 : -1)}
           endX={tieToNext.x - 6}
           endY={tieToNext.y + 6 * (isUpwardStem ? 1 : -1)}
-          curveHeight={20 * note.duration * (isUpwardStem ? 1 : -1)}
+          curveHeight={6 * note.duration * (isUpwardStem ? 1 : -1)}
           thickness={7}
         />
       )}
