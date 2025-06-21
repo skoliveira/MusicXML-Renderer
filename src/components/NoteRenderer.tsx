@@ -186,7 +186,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
           endX={x - 6}
           endY={y + 6 * (isUpwardStem ? 1 : -1)}
           curveHeight={6 * tieEnd.duration * (isUpwardStem ? 1 : -1)}
-          thickness={7}
+          thickness={6}
         />
       )}
       {tieToNext && (
@@ -196,7 +196,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
           endX={tieToNext.x - 6}
           endY={tieToNext.y + 6 * (isUpwardStem ? 1 : -1)}
           curveHeight={6 * note.duration * (isUpwardStem ? 1 : -1)}
-          thickness={7}
+          thickness={6}
         />
       )}
     </>
