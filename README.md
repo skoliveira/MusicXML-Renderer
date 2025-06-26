@@ -1,54 +1,69 @@
-# React + TypeScript + Vite
+# MusicXML Renderer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React-based renderer for MusicXML files, built with TypeScript and Vite. This application allows you to visualize and render musical scores from MusicXML files directly in the browser.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Renders MusicXML files with high fidelity
+- Support for various musical notation elements:
+  - Notes and rests
+  - Clefs and key signatures
+  - Time signatures
+  - Accidentals
+  - Chord symbols
+  - Slurs and ties
+  - Tablature notation
+  - Fretboard diagrams
+- Uses custom font (Bravura) for musical symbols
+- Built with modern web technologies (React, TypeScript, Vite)
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# Clone the repository
+git clone [your-repo-url]
+cd MusicXML-Renderer
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Usage
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. Place your MusicXML files in the `src/assets` directory
+2. Import and use the `MusicRenderer` component in your React application:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```tsx
+import { MusicRenderer } from "./components/MusicRenderer";
+
+function App() {
+  return <MusicRenderer musicXmlFile="path/to/your/file.musicxml" />;
+}
 ```
+
+## Project Structure
+
+- `src/components/` - React components for rendering different musical elements
+- `src/assets/` - MusicXML files and fonts
+- `src/parse.ts` - MusicXML parsing logic
+- `src/type.ts` - TypeScript type definitions
+
+## Development
+
+```bash
+# Run in development mode
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
