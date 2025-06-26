@@ -21,7 +21,7 @@ A modern React-based renderer for MusicXML files, built with TypeScript and Vite
 
 ```bash
 # Clone the repository
-git clone [your-repo-url]
+git clone https://github.com/skoliveira/MusicXML-Renderer.git
 cd MusicXML-Renderer
 
 # Install dependencies
