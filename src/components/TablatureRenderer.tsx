@@ -17,6 +17,7 @@ interface TablatureRendererProps {
   tieEnd?: { x: number; y: number; duration: number };
   tieToNext?: { x: number; y: number; duration: number };
   lyrics?: Note["lyrics"];
+  lyricsHyphenSpan?: number;
 }
 
 export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
@@ -28,6 +29,7 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
   tieEnd,
   tieToNext,
   lyrics,
+  lyricsHyphenSpan,
 }) => {
   // Only render tablature for TAB clef
   if (activeClefSign !== "TAB") {
@@ -172,7 +174,12 @@ export const TablatureRenderer: React.FC<TablatureRendererProps> = ({
       )}
 
       {lyrics && lyrics.length > 0 && (
-        <LyricsRenderer lyrics={lyrics} x={x} y={lyricsY} />
+        <LyricsRenderer
+          lyrics={lyrics}
+          x={x}
+          y={lyricsY}
+          hyphenSpan={lyricsHyphenSpan}
+        />
       )}
 
     </g>

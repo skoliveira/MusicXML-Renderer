@@ -54,19 +54,15 @@ const getClefOffset = (
   line: number = 2,
   octaveChange?: number
 ): number => {
-  // Reference point is middle C (C4)
   let offset = 0;
   switch (clefSign) {
     case "G":
-      // G-clef (treble): G4 is on the second line (line=2)
       offset = (2 - line) * STAFF_LINE_SPACING;
       break;
     case "F":
-      // F-clef (bass): F3 is on the fourth line (line=4)
       offset = (4 - line) * STAFF_LINE_SPACING - 60;
       break;
     case "C":
-      // C-clef (alto/tenor): Middle C (C4) is on the specified line
       offset = (3 - line) * STAFF_LINE_SPACING - 30;
       break;
     case "percussion":
@@ -79,19 +75,16 @@ const getClefOffset = (
       offset = 0;
   }
 
-  // Apply octave change adjustment
   if (octaveChange) {
-    offset += octaveChange * 7 * (STAFF_LINE_SPACING / 2); // 7 steps per octave
+    offset += octaveChange * 7 * (STAFF_LINE_SPACING / 2);
   }
 
   return offset;
 };
 
-// Convert a musical pitch to a vertical Y position
 const scale = ["C", "D", "E", "F", "G", "A", "B"];
 const scaleIndexCache: Record<string, number> = {};
 
-// Memoized function to get index of step in scale
 const getStepIndex = (step: string): number => {
   if (scaleIndexCache[step] !== undefined) {
     return scaleIndexCache[step];
@@ -101,12 +94,10 @@ const getStepIndex = (step: string): number => {
   return index;
 };
 
-// Calculate vertical offset from middle C
 const getOffsetFromMiddleC = (step: string, octave: number): number => {
   return (octave - 4) * 7 + getStepIndex(step);
 };
 
-// Convert a musical pitch to a vertical Y position
 const pitchToY = (
   pitch?: Pitch,
   staff = 1,
@@ -135,25 +126,19 @@ const pitchToY = (
   return baseY + staffOffset + clefOffset + partYOffset;
 };
 
-// Helper function to get tablature Y position for a note
 const getTablatureY = (note: Note, partYOffset: number): number => {
-  const staffYOffset = partYOffset + ((note.staff || 1) - 1) * 120; // STAFF_SPACING
+  const staffYOffset = partYOffset + ((note.staff || 1) - 1) * 120;
 
-  // Get technical notation (string and fret info)
   const technical = note.notations?.find(
     (notation) => notation.technical && notation.technical.length > 0
   )?.technical?.[0];
 
   if (!technical) {
-    return staffYOffset + 3 * STAFF_LINE_SPACING; // Default to middle line
+    return staffYOffset + 3 * STAFF_LINE_SPACING;
   }
 
   const { string: stringNum } = technical;
-
-  // Position the fret number on the correct string line
-  // String 1 should be on the bottom line (highest Y value)
-  // String N should be on the top line (lowest Y value)
-  const stringLineIndex = stringNum - 1; // Convert 1-based string number to 0-based index
+  const stringLineIndex = stringNum - 1;
   return staffYOffset + stringLineIndex * STAFF_LINE_SPACING;
 };
 
@@ -161,7 +146,6 @@ interface MeasureElement {
   note?: Note;
 }
 
-// Function to group notes into chords
 const groupNotesIntoChords = (elements: MeasureElement[]): ChordGroup[] => {
   const chordGroups: ChordGroup[] = [];
   let currentChord: ChordGroup | null = null;
@@ -171,18 +155,16 @@ const groupNotesIntoChords = (elements: MeasureElement[]): ChordGroup[] => {
       const note = element.note;
 
       if (note.chord && currentChord) {
-        // This note is part of the current chord
         currentChord.notes.push(note);
         currentChord.elementIndices.push(index);
       } else {
-        // This is either a new single note or the start of a new chord
         if (currentChord) {
           chordGroups.push(currentChord);
         }
 
         currentChord = {
           notes: [note],
-          x: 0, // Will be set later
+          x: 0,
           duration: note.duration,
           elementIndices: [index],
         };
@@ -190,7 +172,6 @@ const groupNotesIntoChords = (elements: MeasureElement[]): ChordGroup[] => {
     }
   });
 
-  // Don't forget the last chord group
   if (currentChord) {
     chordGroups.push(currentChord);
   }
@@ -198,11 +179,66 @@ const groupNotesIntoChords = (elements: MeasureElement[]): ChordGroup[] => {
   return chordGroups;
 };
 
+// ---------------------------------------------------------------------------
+// Lyric helpers
+// ---------------------------------------------------------------------------
+
+/** Returns true when a note carries at least one lyric with visible text. */
+const noteHasLyric = (note: Note): boolean =>
+  Array.isArray(note.lyrics) &&
+  note.lyrics.some((l) => l.text && l.text.length > 0);
+
+/**
+ * Pre-compute, for every chord-group in a flattened list of measures, the
+ * x-distance to the next chord-group whose first note carries a lyric.
+ *
+ * The returned Map keys are chord-group indices (within the flat list) and
+ * the values are pixel distances.  Entries are only added for groups whose
+ * syllabic value is "begin" or "middle" (i.e. groups that need a hyphen).
+ *
+ * @param chordGroupsWithX  Array of { chordGroup, x } objects in order.
+ * @param divisions         MusicXML divisions value for this part.
+ */
+interface ChordGroupEntry {
+  group: ChordGroup;
+  x: number;
+}
+
+const computeHyphenSpans = (
+  chordGroupsWithX: ChordGroupEntry[]
+): Map<number, number> => {
+  const spans = new Map<number, number>();
+
+  for (let i = 0; i < chordGroupsWithX.length; i++) {
+    const { group, x: currentX } = chordGroupsWithX[i];
+    const firstNote = group.notes[0];
+
+    // Only care about groups that need a hyphen
+    const needsHyphen =
+      firstNote.lyrics?.some(
+        (l) => l.syllabic === "begin" || l.syllabic === "middle"
+      ) ?? false;
+
+    if (!needsHyphen) continue;
+
+    // Scan forward for the next chord-group that carries a lyric
+    for (let j = i + 1; j < chordGroupsWithX.length; j++) {
+      const candidate = chordGroupsWithX[j];
+      if (noteHasLyric(candidate.group.notes[0])) {
+        spans.set(i, candidate.x - currentX);
+        break;
+      }
+    }
+    // If no next syllable is found (end of piece), the span stays unset and
+    // LyricsRenderer will fall back to its default noteSpacing.
+  }
+
+  return spans;
+};
+
 export const MusicRenderer: React.FC<Props> = ({ score }) => {
-  // Calculate total width needed for all parts
   const maxWidth = Math.max(
     ...score.parts.map((part) => {
-      // Get part-specific attributes from first measure
       const firstMeasureAttrs = part.measures[0]?.elements.find(
         (e) => e.attributes
       )?.attributes;
@@ -229,24 +265,18 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
   const svgWidth = maxWidth + 125;
 
-  // Function to get part offset based on previous parts' staves
   const getPartYOffset = (partIndex: number): number => {
-    if (partIndex === 0) return 60; // First part starts at 60px
+    if (partIndex === 0) return 60;
 
-    // Get number of staves in previous part
     const prevPartAttrs = score.parts[partIndex - 1].measures[0]?.elements.find(
       (e) => e.attributes
     )?.attributes;
     const prevPartStaves = prevPartAttrs?.staves ?? 1;
-
-    // Get previous part's offset
     const prevOffset: number = getPartYOffset(partIndex - 1);
 
-    // Return previous part offset + spacing based on its staves count
     return prevOffset + prevPartStaves * STAFF_SPACING;
   };
 
-  // Compute total height dynamically based on number of parts and their staves
   const lastPartIndex = score.parts.length - 1;
   const lastPartAttrs = score.parts[lastPartIndex].measures[0]?.elements.find(
     (e) => e.attributes
@@ -260,7 +290,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
       {score.parts.map((part, partIndex) => {
         const partYOffset = getPartYOffset(partIndex);
 
-        // Get part-specific attributes from first measure
         const firstMeasureAttrs = part.measures[0]?.elements.find(
           (e) => e.attributes
         )?.attributes;
@@ -272,25 +301,75 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
         const initialClefs = firstMeasureAttrs?.clefs ?? [];
         const staffDetails = firstMeasureAttrs?.staffDetails ?? [];
 
-        // Initialize active clefs with initial clefs
         const globalActiveClefs: Record<number, Clef> = {};
         initialClefs.forEach((clef) => {
           globalActiveClefs[clef.staffNumber || 1] = clef;
         });
 
-        let totalWidth = 125; // Starting X position
+        // -------------------------------------------------------------------
+        // First pass: collect all chord-group x-positions across every measure
+        // so we can compute hyphen spans before rendering anything.
+        // -------------------------------------------------------------------
+        const allChordGroupEntries: ChordGroupEntry[] = [];
+        {
+          let scanX = 125;
+          let scanBeats = beats;
+          let scanBeatType = beatType;
 
-        // Track tied notes for each pitch and staff
+          for (const measure of part.measures) {
+            const attrs = measure.elements.find(
+              (e) => e.attributes
+            )?.attributes;
+            scanBeats =
+              attrs?.time?.find((t) => t.beats)?.beats ?? scanBeats;
+            scanBeatType =
+              attrs?.time?.find((t) => t.beatType)?.beatType ?? scanBeatType;
+
+            const measureWidth =
+              (4 * scanBeats * DURATION_SPACING_UNIT * divisions) /
+              scanBeatType;
+
+            let noteX = scanX;
+            let noteSpacing = 0;
+            const chordGroups = groupNotesIntoChords(measure.elements);
+            let cgIdx = 0;
+
+            measure.elements.forEach((element, elementIndex) => {
+              if (element.note) {
+                const cg = chordGroups[cgIdx];
+                if (cg && cg.elementIndices[0] === elementIndex) {
+                  if (!element.note.chord) {
+                    noteX += noteSpacing;
+                  }
+                  noteSpacing = cg.duration * DURATION_SPACING_UNIT;
+                  allChordGroupEntries.push({ group: cg, x: noteX });
+                  cgIdx++;
+                }
+              }
+              if (element.backup) {
+                noteX -= element.backup.duration * DURATION_SPACING_UNIT;
+              }
+            });
+
+            scanX += measureWidth;
+          }
+        }
+
+        const hyphenSpanMap = computeHyphenSpans(allChordGroupEntries);
+
+        // -------------------------------------------------------------------
+        // Second pass: render
+        // -------------------------------------------------------------------
+        let totalWidth = 125;
+
         const tiedNotes = new Map<
           string,
           { note: Note; x: number; y: number; duration: number }
         >();
 
-        // Track slurs - using staff + slur number as key
         const activeSlurs = new Map<string, SlurInfo>();
         const completedSlurs: CompletedSlur[] = [];
 
-        // Helper function to handle slur events
         const handleSlurs = (
           note: Note,
           currentX: number,
@@ -310,16 +389,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   let yOffset = 6;
 
                   if (isTabStaff) {
-                    // For tablature, use the fret position and adjust offset
                     slurY = getTablatureY(note, partYOffset);
-                    yOffset = note.stem === "up" ? -8 : 8; // Adjust for tablature spacing
+                    yOffset = note.stem === "up" ? -8 : 8;
                   } else {
-                    // For standard notation, use existing logic
                     yOffset = 6 * (note.stem === "up" ? 1 : -1);
                   }
 
                   if (slur.type === "start") {
-                    // Start a new slur
                     activeSlurs.set(slurKey, {
                       startX: currentX + 6,
                       startY: slurY + yOffset * (note.stem === "up" ? 1 : -1),
@@ -327,7 +403,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       staff: staffNum,
                     });
                   } else if (slur.type === "stop") {
-                    // End an existing slur
                     const startSlur = activeSlurs.get(slurKey);
                     if (startSlur) {
                       completedSlurs.push({
@@ -348,6 +423,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
             });
           }
         };
+
+        // Global chord-group index across all measures (matches allChordGroupEntries)
+        let globalCgIdx = 0;
 
         return (
           <g key={`part-${partIndex}`}>
@@ -377,11 +455,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
               const elements = [];
 
-              // Group notes into chords
               const chordGroups = groupNotesIntoChords(measure.elements);
               let chordGroupIndex = 0;
 
-              // Add initial measure line for first measure
               if (measureIndex === 0) {
                 elements.push(
                   renderMeasureLine(
@@ -393,14 +469,12 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 );
               }
 
-              // Process elements in order
               measure.elements.forEach((element, elementIndex) => {
                 if (element.attributes?.clefs) {
                   element.attributes.clefs.forEach((clef) => {
                     const staffIndex = (clef.staffNumber || 1) - 1;
                     const staffYOffset =
                       partYOffset + staffIndex * STAFF_SPACING;
-                    // Calculate y position from bottom up (5 is total number of staff lines)
                     const y =
                       staffYOffset +
                       (5 - (clef.line || 2)) * STAFF_LINE_SPACING;
@@ -415,12 +489,10 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       />
                     );
 
-                    // Update global active clefs
                     globalActiveClefs[clef.staffNumber || 1] = clef;
                   });
                 }
 
-                // Add key signature rendering after clefs
                 if (element.attributes?.key) {
                   element.attributes.key.forEach((key, keyIndex) => {
                     for (let staff = 1; staff <= staves; staff++) {
@@ -439,7 +511,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   });
                 }
 
-                // Add time signature rendering after key signature
                 if (element.attributes?.time) {
                   element.attributes.time.forEach((time, timeIndex) => {
                     for (let staff = 1; staff <= staves; staff++) {
@@ -458,7 +529,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   });
                 }
 
-                // Render harmony elements (chord symbols)
                 if (element.harmony) {
                   const chordOffset = element.harmony.offset
                     ? (element.harmony.offset *
@@ -472,21 +542,19 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                       key={`harmony-${partIndex}-${measureIndex}-${elementIndex}`}
                       harmony={element.harmony}
                       x={currentX + spacing}
-                      y={partYOffset - 20} // Position above the staff
+                      y={partYOffset - 20}
                       xOffset={chordOffset}
                     />
                   );
                 }
 
                 if (element.note) {
-                  // Check if this element is the start of a chord group
                   const currentChordGroup = chordGroups[chordGroupIndex];
                   const isFirstNoteInChord =
                     currentChordGroup &&
                     currentChordGroup.elementIndices[0] === elementIndex;
 
                   if (isFirstNoteInChord) {
-                    // Render entire chord group
                     const chordGroup = currentChordGroup;
 
                     if (!element.note.chord) {
@@ -494,7 +562,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                     }
                     spacing = chordGroup.duration * DURATION_SPACING_UNIT;
 
-                    // Pre-calculate all note positions for chord stem calculation
+                    // Look up the pre-computed hyphen span for this chord group
+                    const lyricsHyphenSpan = hyphenSpanMap.get(globalCgIdx);
+
                     const chordNotesWithPositions: ChordNoteWithPosition[] =
                       chordGroup.notes.map((note) => {
                         const staffNum = note.staff || 1;
@@ -502,10 +572,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
 
                         let noteY: number;
                         if (activeClef?.sign === "TAB") {
-                          // Use tablature positioning
                           noteY = getTablatureY(note, partYOffset);
                         } else {
-                          // Use standard notation positioning
                           noteY = note.rest
                             ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
                             : pitchToY(
@@ -520,16 +588,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         return { note, y: noteY };
                       });
 
-                    // Render all notes in the chord
                     chordGroup.notes.forEach((note, noteIndex) => {
                       const noteY = chordNotesWithPositions[noteIndex].y;
                       const staffNum = note.staff || 1;
                       const activeClef = globalActiveClefs[staffNum];
 
-                      // Handle slurs
                       handleSlurs(note, currentX, noteY, staffNum);
 
-                      // Handle ties
                       const hasTieStart = note.notations?.some((notation) =>
                         notation.tied?.some((t) => t.type === "start")
                       );
@@ -537,34 +602,32 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         notation.tied?.some((t) => t.type === "stop")
                       );
 
-                      // Create a unique key for this note's pitch and staff
                       const noteKey = `${note.pitch?.step}${note.pitch?.octave}-${staffNum}`;
-
-                      // Get the tied note info if this note has a tie stop
                       const tieEnd = hasTieStop
                         ? tiedNotes.get(noteKey)
                         : undefined;
 
-                      // Store this note's info if it has a tie start
                       if (hasTieStart) {
                         tiedNotes.set(noteKey, {
                           note,
                           x: currentX,
                           y: noteY,
-                          duration: note.duration, // Store the duration of the starting note
+                          duration: note.duration,
                         });
                       } else {
-                        // Clear the tied note info if this note doesn't continue the tie
                         tiedNotes.delete(noteKey);
                       }
-                      
+
                       const key = `${
                         note.rest ? "rest" : "note"
                       }-${partIndex}-${measureIndex}-${
                         chordGroup.elementIndices[noteIndex]
                       }`;
-                      
-                      const staffBottomY = partYOffset + (staffNum - 1) * STAFF_SPACING + 4 * STAFF_LINE_SPACING;
+
+                      const staffBottomY =
+                        partYOffset +
+                        (staffNum - 1) * STAFF_SPACING +
+                        4 * STAFF_LINE_SPACING;
 
                       elements.push(
                         <NoteRenderer
@@ -580,11 +643,13 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           activeClefSign={activeClef?.sign}
                           tieEnd={tieEnd}
                           staffBottomY={staffBottomY}
+                          lyricsHyphenSpan={lyricsHyphenSpan}
                         />
                       );
                     });
 
                     chordGroupIndex++;
+                    globalCgIdx++;
                   }
                 }
 
@@ -593,7 +658,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 }
               });
 
-              // Add measure line at the end of current measure
               elements.push(
                 renderMeasureLine(
                   measureX +
@@ -605,7 +669,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 )
               );
 
-              // Add final double bar line for the last measure
               if (measureIndex === part.measures.length - 1) {
                 elements.push(
                   <g key={`final-barline-${partIndex}-${measureIndex}`}>
@@ -640,7 +703,6 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               );
             })}
 
-            {/* Render all completed slurs for this part */}
             {completedSlurs.map((slur, slurIndex) => (
               <SlurRenderer
                 key={`slur-${partIndex}-${slurIndex}`}

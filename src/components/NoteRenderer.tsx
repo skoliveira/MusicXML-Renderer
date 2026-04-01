@@ -25,6 +25,9 @@ interface NoteRendererProps {
   tieEnd?: { x: number; y: number; duration: number };
   tieToNext?: { x: number; y: number; duration: number };
   staffBottomY?: number;
+  /** Distance (px) from this note's x to the next note that carries a lyric
+   *  syllable. Used to center hyphens correctly across silent/empty notes. */
+  lyricsHyphenSpan?: number;
   onSlurEvent?: (
     type: "start" | "stop",
     x: number,
@@ -47,6 +50,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   tieEnd,
   tieToNext,
   staffBottomY,
+  lyricsHyphenSpan,
   onSlurEvent,
 }) => {
   const needsFlag =
@@ -104,6 +108,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         tieEnd={tieEnd}
         tieToNext={tieToNext}
         lyrics={note.lyrics}
+        lyricsHyphenSpan={lyricsHyphenSpan}
       />
     );
   }
@@ -227,7 +232,12 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       {(!isChord || isFirstInChord) &&
         note.lyrics &&
         note.lyrics.length > 0 && (
-          <LyricsRenderer lyrics={note.lyrics} x={x} y={lyricsY} />
+          <LyricsRenderer
+            lyrics={note.lyrics}
+            x={x}
+            y={lyricsY}
+            hyphenSpan={lyricsHyphenSpan}
+          />
         )}
     </>
   );
