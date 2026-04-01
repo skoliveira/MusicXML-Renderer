@@ -557,12 +557,14 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         // Clear the tied note info if this note doesn't continue the tie
                         tiedNotes.delete(noteKey);
                       }
-
+                      
                       const key = `${
                         note.rest ? "rest" : "note"
                       }-${partIndex}-${measureIndex}-${
                         chordGroup.elementIndices[noteIndex]
                       }`;
+                      
+                      const staffBottomY = partYOffset + (staffNum - 1) * STAFF_SPACING + 4 * STAFF_LINE_SPACING;
 
                       elements.push(
                         <NoteRenderer
@@ -577,6 +579,7 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           chordNotes={chordNotesWithPositions}
                           activeClefSign={activeClef?.sign}
                           tieEnd={tieEnd}
+                          staffBottomY={staffBottomY}
                         />
                       );
                     });
