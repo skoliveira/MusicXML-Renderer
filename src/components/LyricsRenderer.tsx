@@ -38,7 +38,7 @@ export const LyricsRenderer: React.FC<LyricsRendererProps> = ({
               y={y}
               textAnchor="middle"
               dominantBaseline="hanging"
-              fontSize={16}
+              fontSize={18}
               fontFamily="serif"
               fill="currentColor"
               style={{ userSelect: "none" }}
@@ -58,12 +58,12 @@ export const LyricsRenderer: React.FC<LyricsRendererProps> = ({
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="hanging"
-                fontSize={16}
+                fontSize={18}
                 fontFamily="serif"
                 fill="currentColor"
                 style={{ userSelect: "none" }}
               >
-                -
+                ̶
               </text>
             )}
           </g>
