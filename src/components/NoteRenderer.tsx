@@ -103,6 +103,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
         activeClefSign={activeClefSign}
         tieEnd={tieEnd}
         tieToNext={tieToNext}
+        lyrics={note.lyrics}
       />
     );
   }
@@ -143,7 +144,7 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
   // Lyrics are pinned to a fixed distance below the bottom staff line,
   // regardless of the note's pitch. Falls back to y only if staffBottomY
   // was not provided (should not happen in normal usage).
-  const lyricsY = (staffBottomY ?? y) + 30;
+  const lyricsY = (staffBottomY ?? y) + 22;
 
   return (
     <>
