@@ -81,7 +81,11 @@ export const NoteRenderer: React.FC<NoteRendererProps> = ({
       "512th",
       "1024th",
     ].includes(note.type);
-  const isUpwardStem = note.stem === "up";
+  const isUpwardStem = note.stem && note.stem !== "none"
+  ? note.stem === "up"
+  : isChord && chordNotes.length > 0
+    ? chordNotes[0].note.stem === "up"
+    : true;
 
   React.useEffect(() => {
     if (note.notations && onSlurEvent) {
