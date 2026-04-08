@@ -15,22 +15,28 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
   const stringSpacing = 6;
   const fretSpacing = 6;
   const nutHeight = 2;
-  const nutOffset = nutHeight / 2; // Offset for the nut to not consume first fret space
+  const nutOffset = nutHeight / 2;
   const dotRadius = 2;
   const barreHeight = 4;
 
   // Calculate dimensions
   const diagramWidth = (frameStrings - 1) * stringSpacing;
-  const diagramHeight = frameFrets * fretSpacing;
+
+  // Fret LINE y — lineIndex 0 = top edge, lineIndex frameFrets = bottom edge.
+  // Completely independent of firstFret; just indexes into the visible grid.
+  const getFretLineY = (lineIndex: number) => {
+    return y + lineIndex * fretSpacing;
+  };
+
+  // Fret DOT/barre y — places a mark in the centre of the slot for fretNum,
+  // accounting for which fret is at the top of the diagram (firstFret).
+  const getFretDotY = (fretNum: number) => {
+    return y + (fretNum - firstFret + 0.5) * fretSpacing;
+  };
 
   // Helper function to get string position (from right to left for guitar)
   const getStringX = (stringNum: number) => {
     return x + (frameStrings - stringNum) * stringSpacing;
-  };
-
-  // Helper function to get fret position
-  const getFretY = (fretNum: number) => {
-    return y + fretNum * fretSpacing;
   };
 
   // Create a complete note array with muted strings for unspecified strings
@@ -90,36 +96,36 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
       {firstFret === 0 && (
         <line
           x1={x}
-          y1={y - nutOffset}
+          y1={getFretLineY(0) - nutOffset}
           x2={x + diagramWidth}
-          y2={y - nutOffset}
+          y2={getFretLineY(0) - nutOffset}
           stroke="black"
           strokeWidth={nutHeight}
           strokeLinecap="square"
         />
       )}
 
-      {/* Fret lines */}
+      {/* Fret lines — lineIndex 0..frameFrets, purely positional */}
       {Array.from({ length: frameFrets + 1 }, (_, i) => (
         <line
           key={`fret-${i}`}
           x1={x}
-          y1={getFretY(i)}
+          y1={getFretLineY(i)}
           x2={x + diagramWidth}
-          y2={getFretY(i)}
+          y2={getFretLineY(i)}
           stroke="black"
           strokeWidth={0.5}
         />
       ))}
 
-      {/* String lines */}
+      {/* String lines — span the full grid height */}
       {Array.from({ length: frameStrings }, (_, i) => (
         <line
           key={`string-${i + 1}`}
           x1={getStringX(i + 1)}
-          y1={y}
+          y1={getFretLineY(0)}
           x2={getStringX(i + 1)}
-          y2={y + diagramHeight}
+          y2={getFretLineY(frameFrets)}
           stroke="black"
           strokeWidth={0.5}
         />
@@ -129,7 +135,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
       {firstFret > 1 && (
         <text
           x={x - 4}
-          y={y + fretSpacing / 2}
+          y={getFretLineY(0) + fretSpacing / 2}
           fontSize="9"
           textAnchor="middle"
           dominantBaseline="middle"
@@ -139,7 +145,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
         </text>
       )}
 
-      {/* Frame notes (finger positions) - now using complete array */}
+      {/* Frame notes (finger positions) — using complete array */}
       {completeFrameNote.map((note, index) => {
         const stringX = getStringX(note.string);
 
@@ -171,8 +177,8 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
           );
         }
 
-        // Handle fretted notes
-        const fretY = getFretY(note.fret - 0.5); // Position dot between fret lines
+        // Handle fretted notes — dot sits in the centre of its fret slot
+        const fretY = getFretDotY(note.fret);
 
         return (
           <g key={`note-${index}`}>
@@ -207,7 +213,7 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
 
           if (!endNote) return null;
 
-          const fretY = getFretY(startNote.fret - 0.5);
+          const fretY = getFretDotY(startNote.fret);
           const startX = getStringX(Math.max(startNote.string, endNote.string));
           const endX = getStringX(Math.min(startNote.string, endNote.string));
 
