@@ -31,7 +31,11 @@ export const FretboardRenderer: React.FC<Props> = ({ frame, x, y }) => {
   // Fret DOT/barre y — places a mark in the centre of the slot for fretNum,
   // accounting for which fret is at the top of the diagram (firstFret).
   const getFretDotY = (fretNum: number) => {
-    return y + (fretNum - firstFret + 0.5) * fretSpacing;
+    // slot index is 0-based from the top fret line
+    const slotIndex = firstFret === 0
+      ? fretNum - 1        // fret 1 → slot 0
+      : fretNum - firstFret; // relative offset
+    return y + (slotIndex + 0.5) * fretSpacing;
   };
 
   // Helper function to get string position (from right to left for guitar)
