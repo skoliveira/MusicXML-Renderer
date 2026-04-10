@@ -88,9 +88,9 @@ export const renderMeasureLine = (
     <line
       key={`measure-line-${x}`}
       x1={x}
-      y1={yOffset}
+      y1={yOffset - 0.5}
       x2={x}
-      y2={yOffset + totalHeight}
+      y2={yOffset + totalHeight + 0.5}
       stroke="black"
       strokeWidth={strokeWidth}
     />
