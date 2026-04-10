@@ -57,7 +57,8 @@ export const renderMeasureLine = (
   x: number,
   yOffset: number,
   staves = 1,
-  staffDetails: Array<{ staffNumber?: number; staffLines: number }> = []
+  staffDetails: Array<{ staffNumber?: number; staffLines: number }> = [],
+  strokeWidth: number = 1
 ): JSX.Element => {
   // Calculate total height based on staff details or default
   let totalHeight = 0;
@@ -91,6 +92,7 @@ export const renderMeasureLine = (
       x2={x}
       y2={yOffset + totalHeight}
       stroke="black"
+      strokeWidth={strokeWidth}
     />
   );
 };

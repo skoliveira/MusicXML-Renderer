@@ -117,10 +117,10 @@ const pitchToY = (
   const staffOffset = (staff - 1) * STAFF_SPACING;
   const clefOffset = activeClef
     ? getClefOffset(
-        activeClef.sign,
-        activeClef.line,
-        activeClef.clefOctaveChange
-      )
+      activeClef.sign,
+      activeClef.line,
+      activeClef.clefOctaveChange
+    )
     : 0;
 
   return baseY + staffOffset + clefOffset + partYOffset;
@@ -242,28 +242,45 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
       const firstMeasureAttrs = part.measures[0]?.elements.find(
         (e) => e.attributes
       )?.attributes;
+
       const divisions = firstMeasureAttrs?.divisions ?? 1;
       let beats = firstMeasureAttrs?.time?.find((t) => t.beats)?.beats ?? 4;
       let beatType =
         firstMeasureAttrs?.time?.find((t) => t.beatType)?.beatType ?? 4;
 
-      const totalWidth = part.measures.reduce((sum, measure) => {
+      let totalWidth = 125; // começa igual ao rendering real
+
+      part.measures.forEach((measure, measureIndex) => {
         const attrs = measure.elements.find((e) => e.attributes)?.attributes;
 
         beats = attrs?.time?.find((t) => t.beats)?.beats ?? beats;
-        beatType = attrs?.time?.find((t) => t.beatType)?.beatType ?? beatType;
+        beatType =
+          attrs?.time?.find((t) => t.beatType)?.beatType ?? beatType;
 
         const measureWidth =
           (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType;
 
-        return sum + measureWidth;
-      }, 0);
+        const measureX = totalWidth;
+
+        // Se for o último compasso, calcula posição da barra final
+        if (measureIndex === part.measures.length - 1) {
+          const finalBarlineX =
+            measureX +
+            measureWidth -
+            DURATION_SPACING_UNIT / 2 +
+            1; // mesma lógica do render (linha mais à direita)
+
+          totalWidth = finalBarlineX;
+        } else {
+          totalWidth += measureWidth;
+        }
+      });
 
       return totalWidth;
     })
   );
 
-  const svgWidth = maxWidth + 125;
+  const svgWidth = maxWidth;
 
   const getPartYOffset = (partIndex: number): number => {
     if (partIndex === 0) return 60;
@@ -532,10 +549,10 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                 if (element.harmony) {
                   const chordOffset = element.harmony.offset
                     ? (element.harmony.offset *
-                        beats *
-                        DURATION_SPACING_UNIT *
-                        divisions) /
-                      beatType
+                      beats *
+                      DURATION_SPACING_UNIT *
+                      divisions) /
+                    beatType
                     : 0;
                   elements.push(
                     <ChordSymbolRenderer
@@ -577,12 +594,12 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                           noteY = note.rest
                             ? partYOffset + 20 + (staffNum - 1) * STAFF_SPACING
                             : pitchToY(
-                                note.pitch,
-                                staffNum,
-                                activeClef,
-                                partYOffset,
-                                note.unpitched
-                              );
+                              note.pitch,
+                              staffNum,
+                              activeClef,
+                              partYOffset,
+                              note.unpitched
+                            );
                         }
 
                         return { note, y: noteY };
@@ -618,11 +635,9 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                         tiedNotes.delete(noteKey);
                       }
 
-                      const key = `${
-                        note.rest ? "rest" : "note"
-                      }-${partIndex}-${measureIndex}-${
-                        chordGroup.elementIndices[noteIndex]
-                      }`;
+                      const key = `${note.rest ? "rest" : "note"
+                        }-${partIndex}-${measureIndex}-${chordGroup.elementIndices[noteIndex]
+                        }`;
 
                       const staffBottomY =
                         partYOffset +
@@ -661,8 +676,8 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
               elements.push(
                 renderMeasureLine(
                   measureX +
-                    (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType -
-                    DURATION_SPACING_UNIT / 2,
+                  (4 * beats * DURATION_SPACING_UNIT * divisions) / beatType -
+                  DURATION_SPACING_UNIT / 2,
                   partYOffset,
                   staves,
                   staffDetails
@@ -674,20 +689,21 @@ export const MusicRenderer: React.FC<Props> = ({ score }) => {
                   <g key={`final-barline-${partIndex}-${measureIndex}`}>
                     {renderMeasureLine(
                       measureX +
-                        (4 * beats * DURATION_SPACING_UNIT * divisions) /
-                          beatType -
-                        DURATION_SPACING_UNIT / 2 +
-                        1,
+                      (4 * beats * DURATION_SPACING_UNIT * divisions) /
+                      beatType -
+                      DURATION_SPACING_UNIT / 2 +
+                      0,
                       partYOffset,
                       staves,
-                      staffDetails
+                      staffDetails,
+                      7
                     )}
                     {renderMeasureLine(
                       measureX +
-                        (4 * beats * DURATION_SPACING_UNIT * divisions) /
-                          beatType -
-                        DURATION_SPACING_UNIT / 2 -
-                        3,
+                      (4 * beats * DURATION_SPACING_UNIT * divisions) /
+                      beatType -
+                      DURATION_SPACING_UNIT / 2 -
+                      8,
                       partYOffset,
                       staves,
                       staffDetails
